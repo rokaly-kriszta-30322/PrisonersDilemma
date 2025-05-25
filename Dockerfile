@@ -22,7 +22,7 @@ COPY --from=frontend-build /app/frontend/build ./wwwroot
 RUN dotnet publish -c Release -o out
 
 # Stage 3: Runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:7.0
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
 
 COPY --from=backend-build /app/backend/out .
