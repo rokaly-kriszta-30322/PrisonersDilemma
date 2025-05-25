@@ -9,7 +9,7 @@ COPY frontend/ ./
 RUN npm run build
 
 # Stage 2: Build .NET backend
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS backend-build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS backend-build
 WORKDIR /app/backend
 
 COPY backend/*.csproj ./
