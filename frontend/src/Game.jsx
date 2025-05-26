@@ -15,6 +15,7 @@ const GamePage = () => {
   const [pendingInteraction, setPendingInteraction] = useState(null);
   const [bots, setBots] = useState([]);
   const [selectedBotId, setSelectedBotId] = useState(null);
+  const [isActive, setIsActive] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -97,7 +98,7 @@ const GamePage = () => {
         }
       }
 
-    }, 2000);
+    }, 10000);
 
     return () => clearInterval(botInitiationInterval);
   }, [activePlayers, auth.token]);
@@ -230,6 +231,21 @@ const GamePage = () => {
       console.error("Failed to send choice:", err);
     }
   };
+
+  const handleToggleActive = async () => {
+  try {
+    const newStatus = !isActive;
+    await axios.post('/UserData/users/set-active', newStatus, {
+      headers: {
+        Authorization: `Bearer ${auth.token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    setIsActive(newStatus);
+  } catch (err) {
+    console.error("Failed to toggle active status:", err);
+  }
+};
 
   const handleLogout = async () => {
     try {
@@ -377,6 +393,9 @@ const filteredPlayers = activePlayers.filter(p => p.userId !== auth.user.userId)
                   Deactivate
                 </button>
               </div>
+              <button onClick={handleToggleActive}>
+                {isActive ? "Spectate" : "Join"}
+              </button>
             </div>
           )}
         </>

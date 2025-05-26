@@ -49,6 +49,21 @@ public class UserDataController : Controller
         return Ok(users);
     }
 
+    [HttpPost("users/set-active")]
+    public IActionResult SetActiveStatus([FromBody] bool isActive)
+    {
+        var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (claim == null || !int.TryParse(claim, out var userId))
+            return Unauthorized("Invalid user ID.");
+
+        if (isActive)
+            _activeUsers.AddUser(userId, isBot: false);
+        else
+            _activeUsers.RemoveUser(userId);
+
+        return Ok();
+    }
+
     [HttpGet("bots")]
     [Authorize(Roles = "admin")]
     public async Task<IActionResult> GetAllBots()
@@ -66,22 +81,24 @@ public class UserDataController : Controller
 
     [HttpPost("bot/deactivate/{selectedBotId}")]
     [Authorize(Roles = "admin")]
-    public IActionResult DeactivateBot(int selectedBotId)
+    public async Task<IActionResult> DeactivateBotAsync(int selectedBotId)
     {
         var bot = _myDbContext.user_data
                 .FirstOrDefault(u => u.UserId == selectedBotId && u.Role == "bot");
-
+        
         _activeUsers.RemoveUser(selectedBotId);
+        await _gameLogic.ResetToStart(selectedBotId);
         return Ok("Bot deactivated");
     }
 
     [HttpPost("bot/activate/{selectedBotId}")]
     [Authorize(Roles = "admin")]
-    public async Task<IActionResult> ActivateBot(int selectedBotId)
+    public async Task<IActionResult> ActivateBotAsync(int selectedBotId)
     {
         try
         {
             var bot = _myDbContext.user_data
+                .Include(u => u.GameData)
                 .FirstOrDefault(u => u.UserId == selectedBotId && u.Role == "bot");
 
             if (bot == null)
@@ -94,7 +111,7 @@ public class UserDataController : Controller
                 return BadRequest("Bot is already active.");
             }
 
-            await _gameLogic.ResetToStart(selectedBotId);
+            if(bot.GameData!.MoneyPoints != 100 || bot.GameData.CoopCoop != 8) await _gameLogic.ResetToStart(selectedBotId);
             _activeUsers.AddUser(selectedBotId, isBot: true);
 
             return Ok(new { message = "Bot activated.", userId = selectedBotId });
@@ -151,6 +168,22 @@ public class UserDataController : Controller
         await _myDbContext.SaveChangesAsync();
 
         return Ok("User added");
+    }
+
+    [HttpPost("resetTurnsNrs")]
+    public async Task<IActionResult> ResetUserTurnsNrsAsync(int userId)
+    {
+        var user = await _myDbContext.user_data.FindAsync(userId);
+
+        if (user == null)
+            return NotFound("User not found.");
+
+        user.MaxTurns = 0;
+        user.GameNr = 0;
+
+        await _myDbContext.SaveChangesAsync();
+
+        return Ok("User state reset to 0.");
     }
 
     [HttpGet("GetUser/{id}")]

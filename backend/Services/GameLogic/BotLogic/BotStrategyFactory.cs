@@ -3,6 +3,11 @@ public interface IBotStrategy
     PlayerChoice GetNextChoice(BotContext context);
 }
 
+public interface IResettableBotStrategy
+{
+    void ResetAllOpponentMemory();
+}
+
 public static class BotStrategyFactory
 {
     public static IBotStrategy GetStrategy(string strategyName)
@@ -15,6 +20,9 @@ public static class BotStrategyFactory
             "titfortat" => new TitForTatStrat(),
             "sneaky" => new SneakyTitForTatStrat(),
             "tester" => new TesterStrat(),
+            "sample" => new TwoTitsForTatStrat(),
+            "prober" => new ProberStrat(),
+            "grudge" => new FriedmanStrat(),
             _ => throw new ArgumentException($"Unknown strategy: {strategyName}")
         };
     }

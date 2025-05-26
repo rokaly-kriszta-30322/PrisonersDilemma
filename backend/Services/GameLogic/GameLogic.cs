@@ -7,20 +7,22 @@ public class GameLogic
     private readonly RoleHandler _roleHandler;
     private readonly MatrixHandler _matrixHandler;
     private readonly ActiveUsers _activeUsers;
+    private readonly IBotStrategyManager _botStrategyManager;
 
-    public GameLogic(ActiveUsers activeUsers, MatrixHandler matrixHandler, MyDbContext myDbContext, IHttpContextAccessor httpContextAccessor, RoleHandler roleHandler)
+    public GameLogic(IBotStrategyManager botStrategyManager, ActiveUsers activeUsers, MatrixHandler matrixHandler, MyDbContext myDbContext, IHttpContextAccessor httpContextAccessor, RoleHandler roleHandler)
     {
         _myDbContext = myDbContext;
         _httpContextAccessor = httpContextAccessor;
         _roleHandler = roleHandler;
         _matrixHandler = matrixHandler;
         _activeUsers = activeUsers;
+        _botStrategyManager = botStrategyManager;
     }
 
     public async Task InitiateBackup(UserData bot, UserData target)
     {
         Console.WriteLine($"InitiateBackup called for bot {bot.UserId} target {target.UserId}");
-        
+
         var lastInteraction = await _myDbContext.game_session
         .Where(gs =>
             (gs.User1 == bot.UserId && gs.User2 == target.UserId && gs.GameNr1 == bot.GameNr) ||
@@ -36,7 +38,7 @@ public class GameLogic
         {
             choice = strat!.Start ? PlayerChoice.Coop : PlayerChoice.Deflect;
             Console.WriteLine("choice from inside null last" + choice);
-            
+
         }
         else
         {
@@ -60,7 +62,7 @@ public class GameLogic
                 Round = round
             };
 
-            var strategy = BotStrategyFactory.GetStrategy(strat!.Strategy!);
+            var strategy = _botStrategyManager.GetOrCreateStrategy(bot.UserId, strat!.Strategy!);
             choice = strategy.GetNextChoice(context);
 
             Console.WriteLine("choice from inside NOTnull last" + choice);
@@ -72,7 +74,7 @@ public class GameLogic
     public async Task ResetToStart(int userId)
     {
         var user = await _myDbContext.user_data.FirstOrDefaultAsync(u => u.UserId == userId);
-        
+
         var currentGameNr = user!.GameNr;
         var turnCount = await _myDbContext.game_session
         .Where(gs =>
@@ -94,6 +96,15 @@ public class GameLogic
         userData.DeflectCoop = -12;
         userData.DeflectDeflect = -5;
 
+        if (user.Role == "bot")
+        {
+            var strategyRecord = await _myDbContext.bot_strat.FirstOrDefaultAsync(b => b.UserId == userId);
+            if (strategyRecord != null)
+            {
+                _botStrategyManager.ResetBotMemory(userId);
+            }
+        }
+
         await _myDbContext.SaveChangesAsync();
     }
 
@@ -104,7 +115,8 @@ public class GameLogic
 
         _activeUsers.RemoveUser(userId);
 
-        if (user.Role == "bot"){
+        if (user.Role == "bot")
+        {
             await ResetToStart(userId);
         }
     }
@@ -119,11 +131,13 @@ public class GameLogic
             throw new Exception("Could not find user or target ID.");
         }
 
-        if(request.Choice1 == "Coop" || request.Choice1 == "Deflect"){
+        if (request.Choice1 == "Coop" || request.Choice1 == "Deflect")
+        {
             var initiatorChoice = Enum.Parse<PlayerChoice>(request.Choice1);
             await HandleTradeInitiationAsync(userId.Value, targetId.Value, initiatorChoice);
         }
-        else if(request.Choice1 == "Buy"){
+        else if (request.Choice1 == "Buy")
+        {
             await HandleBuyAsync(userId);
         }
     }
@@ -149,8 +163,8 @@ public class GameLogic
             GameNr1 = userData!.GameNr,
             MoneyPoints1 = playerData.MoneyPoints + 500,
             CoopCoop1 = playerData.CoopCoop - 1,
-            CoopDeflect1 = playerData.CoopDeflect -1,
-            DeflectCoop1 = playerData.DeflectCoop -1,
+            CoopDeflect1 = playerData.CoopDeflect - 1,
+            DeflectCoop1 = playerData.DeflectCoop - 1,
             DeflectDeflect1 = playerData.DeflectDeflect - 1,
 
             User2 = playerId.Value,
@@ -192,7 +206,6 @@ public class GameLogic
         }
     }
 
-
     private async Task RespondAsBotAsync(PendingInteraction pending, int playerId, int targetId)
     {
         Console.WriteLine("entered it");
@@ -201,7 +214,7 @@ public class GameLogic
 
         var lastInteraction = await _myDbContext.game_session
             .Where(gs =>
-                (gs.User1 == playerId && gs.User2 == targetId && gs.GameNr1 == botNr!.GameNr) ||
+                (gs.User1 == playerId && gs.User2 == targetId && gs.GameNr2 == botNr!.GameNr) ||
                 (gs.User2 == playerId && gs.User1 == targetId && gs.GameNr1 == botNr!.GameNr))
             .OrderByDescending(gs => gs.ID)
             .FirstOrDefaultAsync();
@@ -215,8 +228,7 @@ public class GameLogic
             Console.WriteLine("choice from inside null last" + botResponse);
             await HandleTradeResponseAsync(pending.PendingId, botResponse);
         }
-
-        if (lastInteraction != null)
+        else if (lastInteraction != null)
         {
             if (lastInteraction.User1 == playerId && Enum.TryParse<PlayerChoice>(lastInteraction.Choice1, out var parsedChoice1))
                 lastOpponentChoice = parsedChoice1;
@@ -225,14 +237,14 @@ public class GameLogic
 
             var context = new BotContext
             {
-                OpponentId = targetId,
+                OpponentId = playerId,
                 LastOpponentChoice = lastOpponentChoice,
                 Round = await _myDbContext.game_session.CountAsync(gs =>
-                    (gs.User1 == targetId && gs.User2 == playerId) ||
-                    (gs.User2 == targetId && gs.User1 == playerId))
+                    (gs.User1 == targetId && gs.User2 == playerId && gs.GameNr1 == botNr!.GameNr) ||
+                    (gs.User2 == targetId && gs.User1 == playerId && gs.GameNr2 == botNr!.GameNr))
             };
 
-            var strategy = BotStrategyFactory.GetStrategy(bot!.Strategy!);
+            var strategy = _botStrategyManager.GetOrCreateStrategy(botNr!.UserId, bot!.Strategy!);
             botResponse = strategy.GetNextChoice(context);
             await HandleTradeResponseAsync(pending.PendingId, botResponse);
         }
@@ -322,12 +334,12 @@ public class GameLogic
         {
             var bot = await _myDbContext.bot_strat.FirstOrDefaultAsync(b => b.UserId == playerUser.UserId);
             if (bot!.MoneyLimit < playerData.MoneyPoints) await HandleBuyAsync(playerUser.UserId);
-        } 
+        }
         else if (targetUser!.Role == "bot")
         {
             var bot = await _myDbContext.bot_strat.FirstOrDefaultAsync(b => b.UserId == targetUser.UserId);
             if (bot!.MoneyLimit < targetData.MoneyPoints) await HandleBuyAsync(targetUser.UserId);
-        } 
+        }
         if (targetData.MoneyPoints <= 0)
         {
             await NoMoneyAsync(targetData.UserId);
