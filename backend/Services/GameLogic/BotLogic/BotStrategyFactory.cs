@@ -14,6 +14,7 @@ public static class BotStrategyFactory
             "deflect" => new AlwaysDeflectStrat(),
             "titfortat" => new TitForTatStrat(),
             "sneaky" => new SneakyTitForTatStrat(),
+            "tester" => new TesterStrat(),
             _ => throw new ArgumentException($"Unknown strategy: {strategyName}")
         };
     }

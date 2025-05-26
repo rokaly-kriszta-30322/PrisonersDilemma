@@ -66,11 +66,14 @@ const GamePage = () => {
             headers: { Authorization: `Bearer ${auth.token}` },
             validateStatus: () => true
           });
-
+          console.log(`status ${pendingRes.status}`);
           if (pendingRes.status === 204) {
             const candidates = activePlayers.filter(p => p.userId !== bot.userId);
+            console.log(`candidates ${candidates.length}`);
+            activePlayers.forEach(p => console.log(`User: ${p.userName}, Id: ${p.userId} (${typeof p.userId})`));
+            console.log(`bot userid ${bot.userId}`);
             if (candidates.length === 0) continue;
-
+            
             const randomTarget = candidates[Math.floor(Math.random() * candidates.length)];
 
             console.log(`Bots`, candidates);
@@ -94,7 +97,7 @@ const GamePage = () => {
         }
       }
 
-    }, 7000);
+    }, 2000);
 
     return () => clearInterval(botInitiationInterval);
   }, [activePlayers, auth.token]);
@@ -276,6 +279,8 @@ const GamePage = () => {
   }
 };
 
+const filteredPlayers = activePlayers.filter(p => p.userId !== auth.user.userId);
+
   return (
     <div className="game-container">
 
@@ -317,7 +322,7 @@ const GamePage = () => {
             </tr>
           </thead>
           <tbody>
-            {activePlayers.map((player) => (
+            {filteredPlayers.map((player) => (
               <tr key={player.userId}>
                 <td>{player.userName}</td>
                 <td>{player.moneyPoints}</td>

@@ -13,16 +13,14 @@ public class UserDataController : Controller
     private readonly AccessTokenGenerator _accessToken;
     private readonly ActiveUsers _activeUsers;
     private readonly GameLogic _gameLogic;
-    private readonly ILogger<BotInitiationService> _logger;
 
-    public UserDataController(ILogger<BotInitiationService> logger, GameLogic gameLogic, MyDbContext myDbContext, IPasswordHasher passwordHasher, AccessTokenGenerator accessToken, ActiveUsers activeUsers)
+    public UserDataController(GameLogic gameLogic, MyDbContext myDbContext, IPasswordHasher passwordHasher, AccessTokenGenerator accessToken, ActiveUsers activeUsers)
     { 
         _myDbContext = myDbContext;
         _passwordHasher = passwordHasher;
         _accessToken = accessToken;
         _activeUsers = activeUsers;
         _gameLogic = gameLogic;
-        _logger = logger;
         
     }
 
@@ -38,7 +36,7 @@ public class UserDataController : Controller
         var ids = _activeUsers.GetActiveUserIds();
 
         var users = await _myDbContext.user_data
-            .Where(u => ids.Contains(u.UserId) && u.UserId != currentUserId)
+            .Where(u => ids.Contains(u.UserId))
             .Include(u => u.GameData)
             .Select(u => new {
                 u.UserId,
@@ -65,22 +63,21 @@ public class UserDataController : Controller
 
         return Ok(bots);
     }
-    
+
     [HttpPost("bot/deactivate/{selectedBotId}")]
     [Authorize(Roles = "admin")]
-    public async Task<IActionResult> DeactivateBot(int selectedBotId)
+    public IActionResult DeactivateBot(int selectedBotId)
     {
         var bot = _myDbContext.user_data
                 .FirstOrDefault(u => u.UserId == selectedBotId && u.Role == "bot");
 
         _activeUsers.RemoveUser(selectedBotId);
-        await _gameLogic.ResetToStart(selectedBotId);
         return Ok("Bot deactivated");
     }
 
     [HttpPost("bot/activate/{selectedBotId}")]
     [Authorize(Roles = "admin")]
-    public IActionResult ActivateBot(int selectedBotId)
+    public async Task<IActionResult> ActivateBot(int selectedBotId)
     {
         try
         {
@@ -97,6 +94,7 @@ public class UserDataController : Controller
                 return BadRequest("Bot is already active.");
             }
 
+            await _gameLogic.ResetToStart(selectedBotId);
             _activeUsers.AddUser(selectedBotId, isBot: true);
 
             return Ok(new { message = "Bot activated.", userId = selectedBotId });

@@ -9,14 +9,12 @@ public class BotStrategyController : Controller
     private readonly MyDbContext _myDbContext;
     private readonly GameLogic _gameLogic;
     private readonly ActiveUsers _activeUsers;
-    private readonly ILogger<BotInitiationService> _logger;
 
-    public BotStrategyController(ILogger<BotInitiationService> logger, MyDbContext myDbContext, GameLogic gameLogic, ActiveUsers activeUsers)
+    public BotStrategyController(MyDbContext myDbContext, GameLogic gameLogic, ActiveUsers activeUsers)
     { 
         _myDbContext = myDbContext;
         _gameLogic = gameLogic;
         _activeUsers = activeUsers;
-        _logger = logger;
     }
 
     [HttpPost("AddBotStrategy")]

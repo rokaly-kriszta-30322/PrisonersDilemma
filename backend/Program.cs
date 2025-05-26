@@ -27,7 +27,7 @@ builder.Services.AddSingleton<ActiveUsers>();
 builder.Services.AddScoped<GameLogic>();
 builder.Services.AddScoped<RoleHandler>();
 builder.Services.AddScoped<MatrixHandler>();
-builder.Services.AddHostedService<BotInitiationService>();
+//builder.Services.AddHostedService<BotInitiationService>();
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information);
 builder.Services.AddHttpContextAccessor();
 
