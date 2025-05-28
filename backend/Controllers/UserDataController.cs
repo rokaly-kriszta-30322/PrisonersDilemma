@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,15 +12,17 @@ public class UserDataController : Controller
     private readonly AccessTokenGenerator _accessToken;
     private readonly ActiveUsers _activeUsers;
     private readonly GameLogic _gameLogic;
+    private readonly GameOver _gameOver;
 
-    public UserDataController(GameLogic gameLogic, MyDbContext myDbContext, IPasswordHasher passwordHasher, AccessTokenGenerator accessToken, ActiveUsers activeUsers)
-    { 
+    public UserDataController(GameOver gameOver, GameLogic gameLogic, MyDbContext myDbContext, IPasswordHasher passwordHasher, AccessTokenGenerator accessToken, ActiveUsers activeUsers)
+    {
         _myDbContext = myDbContext;
         _passwordHasher = passwordHasher;
         _accessToken = accessToken;
         _activeUsers = activeUsers;
         _gameLogic = gameLogic;
-        
+        _gameOver = gameOver;
+
     }
 
     [HttpGet("users/active")]
@@ -87,7 +88,7 @@ public class UserDataController : Controller
                 .FirstOrDefault(u => u.UserId == selectedBotId && u.Role == "bot");
         
         _activeUsers.RemoveUser(selectedBotId);
-        await _gameLogic.ResetToStart(selectedBotId);
+        await _gameOver.ResetToStart(selectedBotId);
         return Ok("Bot deactivated");
     }
 
@@ -111,7 +112,7 @@ public class UserDataController : Controller
                 return BadRequest("Bot is already active.");
             }
 
-            if(bot.GameData!.MoneyPoints != 100 || bot.GameData.CoopCoop != 8) await _gameLogic.ResetToStart(selectedBotId);
+            if(bot.GameData!.MoneyPoints != 100 || bot.GameData.CoopCoop != 8) await _gameOver.ResetToStart(selectedBotId);
             _activeUsers.AddUser(selectedBotId, isBot: true);
 
             return Ok(new { message = "Bot activated.", userId = selectedBotId });
@@ -262,7 +263,7 @@ public class UserDataController : Controller
 
             _activeUsers.RemoveUser(userId);
 
-            await _gameLogic.ResetToStart(userId);
+            await _gameOver.ResetToStart(userId);
 
             return Ok(new { message = "Logged out successfully." });
         }

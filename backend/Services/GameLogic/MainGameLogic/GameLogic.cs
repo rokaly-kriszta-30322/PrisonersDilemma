@@ -2,131 +2,25 @@ using Microsoft.EntityFrameworkCore;
 
 public class GameLogic
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly MyDbContext _myDbContext;
-    private readonly RoleHandler _roleHandler;
     private readonly MatrixHandler _matrixHandler;
-    private readonly ActiveUsers _activeUsers;
     private readonly IBotStrategyManager _botStrategyManager;
+    private readonly GameOver _gameOver;
 
-    public GameLogic(IBotStrategyManager botStrategyManager, ActiveUsers activeUsers, MatrixHandler matrixHandler, MyDbContext myDbContext, IHttpContextAccessor httpContextAccessor, RoleHandler roleHandler)
+    public GameLogic(IBotStrategyManager botStrategyManager, GameOver gameOver, MatrixHandler matrixHandler, MyDbContext myDbContext)
     {
         _myDbContext = myDbContext;
-        _httpContextAccessor = httpContextAccessor;
-        _roleHandler = roleHandler;
         _matrixHandler = matrixHandler;
-        _activeUsers = activeUsers;
         _botStrategyManager = botStrategyManager;
-    }
-
-    public async Task InitiateBackup(UserData bot, UserData target)
-    {
-        Console.WriteLine($"InitiateBackup called for bot {bot.UserId} target {target.UserId}");
-
-        var lastInteraction = await _myDbContext.game_session
-        .Where(gs =>
-            (gs.User1 == bot.UserId && gs.User2 == target.UserId && gs.GameNr1 == bot.GameNr) ||
-            (gs.User2 == bot.UserId && gs.User1 == target.UserId && gs.GameNr2 == bot.GameNr))
-        .OrderByDescending(gs => gs.ID)
-        .FirstOrDefaultAsync();
-        Console.WriteLine("lastinteraction + gamenr" + lastInteraction + " " + bot.GameNr);
-
-        PlayerChoice choice;
-        var strat = await _myDbContext.bot_strat.FirstOrDefaultAsync(b => b.UserId == bot.UserId);
-
-        if (lastInteraction == null)
-        {
-            choice = strat!.Start ? PlayerChoice.Coop : PlayerChoice.Deflect;
-            Console.WriteLine("choice from inside null last" + choice);
-
-        }
-        else
-        {
-            PlayerChoice? lastOpponentChoice = null;
-
-            if (lastInteraction.User1 == target.UserId && Enum.TryParse<PlayerChoice>(lastInteraction.Choice1, out var parsedChoice1))
-                lastOpponentChoice = parsedChoice1;
-            else if (lastInteraction.User2 == target.UserId && Enum.TryParse<PlayerChoice>(lastInteraction.Choice2, out var parsedChoice2))
-                lastOpponentChoice = parsedChoice2;
-
-            var round = await _myDbContext.game_session.CountAsync(gs =>
-                (gs.User1 == bot.UserId && gs.User2 == target.UserId && gs.GameNr1 == bot.GameNr) ||
-                (gs.User2 == bot.UserId && gs.User1 == target.UserId && gs.GameNr2 == bot.GameNr));
-
-            Console.WriteLine("context" + lastOpponentChoice + " " + round);
-
-            var context = new BotContext
-            {
-                OpponentId = target.UserId,
-                LastOpponentChoice = lastOpponentChoice,
-                Round = round
-            };
-
-            var strategy = _botStrategyManager.GetOrCreateStrategy(bot.UserId, strat!.Strategy!);
-            choice = strategy.GetNextChoice(context);
-
-            Console.WriteLine("choice from inside NOTnull last" + choice);
-        }
-
-        await HandleTradeInitiationAsync(bot.UserId, target.UserId, choice);
-    }
-
-    public async Task ResetToStart(int userId)
-    {
-        var user = await _myDbContext.user_data.FirstOrDefaultAsync(u => u.UserId == userId);
-
-        var currentGameNr = user!.GameNr;
-        var turnCount = await _myDbContext.game_session
-        .Where(gs =>
-            (gs.User1 == userId && gs.GameNr1 == currentGameNr) ||
-            (gs.User2 == userId && gs.GameNr2 == currentGameNr))
-        .CountAsync();
-
-        if (turnCount > user.MaxTurns)
-        {
-            user.MaxTurns = turnCount;
-        }
-        user!.GameNr += 1;
-
-        var userData = await _myDbContext.game_data.FirstOrDefaultAsync(gm => gm.UserId == userId);
-
-        userData!.MoneyPoints = 100;
-        userData.CoopCoop = 8;
-        userData.CoopDeflect = 20;
-        userData.DeflectCoop = -12;
-        userData.DeflectDeflect = -5;
-
-        if (user.Role == "bot")
-        {
-            var strategyRecord = await _myDbContext.bot_strat.FirstOrDefaultAsync(b => b.UserId == userId);
-            if (strategyRecord != null)
-            {
-                _botStrategyManager.ResetBotMemory(userId);
-            }
-        }
-
-        await _myDbContext.SaveChangesAsync();
-    }
-
-    public async Task NoMoneyAsync(int userId)
-    {
-        var user = await _myDbContext.user_data.FirstOrDefaultAsync(u => u.UserId == userId);
-        if (user == null) return;
-
-        _activeUsers.RemoveUser(userId);
-
-        if (user.Role == "bot")
-        {
-            await ResetToStart(userId);
-        }
+        _gameOver = gameOver;
     }
 
     public async Task GetUserIdAsync(GameSessionRequest request)
     {
+        var user = await _myDbContext.user_data.FirstOrDefaultAsync(u => u.UserName == request.UserName1);
+        var target = await _myDbContext.user_data.FirstOrDefaultAsync(u => u.UserName == request.UserName2);
 
-        var (userId, targetId) = await _roleHandler.ResolveIdsAsync(request.UserName2!, request.UserName1!);
-
-        if (userId == null || targetId == null)
+        if (user == null || target == null)
         {
             throw new Exception("Could not find user or target ID.");
         }
@@ -134,11 +28,11 @@ public class GameLogic
         if (request.Choice1 == "Coop" || request.Choice1 == "Deflect")
         {
             var initiatorChoice = Enum.Parse<PlayerChoice>(request.Choice1);
-            await HandleTradeInitiationAsync(userId.Value, targetId.Value, initiatorChoice);
+            await HandleTradeInitiationAsync(user.UserId, target.UserId, initiatorChoice);
         }
         else if (request.Choice1 == "Buy")
         {
-            await HandleBuyAsync(userId);
+            await HandleBuyAsync(user.UserId);
         }
     }
 
@@ -204,52 +98,6 @@ public class GameLogic
             Console.WriteLine("will enter bot response as targetId is bot");
             await RespondAsBotAsync(pending, playerId, targetId);
         }
-    }
-
-    private async Task RespondAsBotAsync(PendingInteraction pending, int playerId, int targetId)
-    {
-        Console.WriteLine("entered it");
-        var bot = await _myDbContext.bot_strat.FirstOrDefaultAsync(b => b.UserId == targetId);
-        var botNr = await _myDbContext.user_data.FirstOrDefaultAsync(u => u.UserId == targetId);
-
-        var lastInteraction = await _myDbContext.game_session
-            .Where(gs =>
-                (gs.User1 == playerId && gs.User2 == targetId && gs.GameNr2 == botNr!.GameNr) ||
-                (gs.User2 == playerId && gs.User1 == targetId && gs.GameNr1 == botNr!.GameNr))
-            .OrderByDescending(gs => gs.ID)
-            .FirstOrDefaultAsync();
-
-        PlayerChoice? lastOpponentChoice = null;
-        PlayerChoice botResponse;
-
-        if (lastInteraction == null)
-        {
-            botResponse = bot!.Start ? PlayerChoice.Coop : PlayerChoice.Deflect;
-            Console.WriteLine("choice from inside null last" + botResponse);
-            await HandleTradeResponseAsync(pending.PendingId, botResponse);
-        }
-        else if (lastInteraction != null)
-        {
-            if (lastInteraction.User1 == playerId && Enum.TryParse<PlayerChoice>(lastInteraction.Choice1, out var parsedChoice1))
-                lastOpponentChoice = parsedChoice1;
-            else if (lastInteraction.User2 == playerId && Enum.TryParse<PlayerChoice>(lastInteraction.Choice2, out var parsedChoice2))
-                lastOpponentChoice = parsedChoice2;
-
-            var context = new BotContext
-            {
-                OpponentId = playerId,
-                LastOpponentChoice = lastOpponentChoice,
-                Round = await _myDbContext.game_session.CountAsync(gs =>
-                    (gs.User1 == targetId && gs.User2 == playerId && gs.GameNr1 == botNr!.GameNr) ||
-                    (gs.User2 == targetId && gs.User1 == playerId && gs.GameNr2 == botNr!.GameNr))
-            };
-
-            var strategy = _botStrategyManager.GetOrCreateStrategy(botNr!.UserId, bot!.Strategy!);
-            botResponse = strategy.GetNextChoice(context);
-            await HandleTradeResponseAsync(pending.PendingId, botResponse);
-        }
-
-        Console.WriteLine("should exit it" + pending.PendingId);
     }
 
     public async Task HandleTradeResponseAsync(int pendingId, PlayerChoice targetChoice)
@@ -342,16 +190,115 @@ public class GameLogic
         }
         if (targetData.MoneyPoints <= 0)
         {
-            await NoMoneyAsync(targetData.UserId);
+            await _gameOver.NoMoneyAsync(targetData.UserId);
         }
         else if (playerData.MoneyPoints <= 0)
         {
-            await NoMoneyAsync(playerData.UserId);
+            await _gameOver.NoMoneyAsync(playerData.UserId);
         }
         _myDbContext.game_session.Add(gameSession);
         _myDbContext.pending_interactions.Remove(pending);
         var result = await _myDbContext.SaveChangesAsync();
         Console.WriteLine("should be saved and inserted");
+    }
+
+    public async Task InitiateBackup(UserData bot, UserData target)
+    {
+        Console.WriteLine($"InitiateBackup called for bot {bot.UserId} target {target.UserId}");
+
+        var lastInteraction = await _myDbContext.game_session
+        .Where(gs =>
+            (gs.User1 == bot.UserId && gs.User2 == target.UserId && gs.GameNr1 == bot.GameNr) ||
+            (gs.User2 == bot.UserId && gs.User1 == target.UserId && gs.GameNr2 == bot.GameNr))
+        .OrderByDescending(gs => gs.ID)
+        .FirstOrDefaultAsync();
+        Console.WriteLine("lastinteraction + gamenr" + lastInteraction + " " + bot.GameNr);
+
+        PlayerChoice choice;
+        var strat = await _myDbContext.bot_strat.FirstOrDefaultAsync(b => b.UserId == bot.UserId);
+
+        if (lastInteraction == null)
+        {
+            choice = strat!.Start ? PlayerChoice.Coop : PlayerChoice.Deflect;
+            Console.WriteLine("choice from inside null last" + choice);
+
+        }
+        else
+        {
+            PlayerChoice? lastOpponentChoice = null;
+
+            if (lastInteraction.User1 == target.UserId)
+                lastOpponentChoice = Enum.Parse<PlayerChoice>(lastInteraction.Choice1!);
+            else if (lastInteraction.User2 == target.UserId)
+                lastOpponentChoice = Enum.Parse<PlayerChoice>(lastInteraction.Choice2!);
+
+            var round = await _myDbContext.game_session.CountAsync(gs =>
+                (gs.User1 == bot.UserId && gs.User2 == target.UserId && gs.GameNr1 == bot.GameNr && gs.GameNr2 == target.GameNr) ||
+                (gs.User2 == bot.UserId && gs.User1 == target.UserId && gs.GameNr2 == bot.GameNr && gs.GameNr1 == target.GameNr));
+
+            Console.WriteLine("context" + lastOpponentChoice + " " + round);
+
+            var context = new BotContext
+            {
+                OpponentId = target.UserId,
+                LastOpponentChoice = lastOpponentChoice,
+                Round = round
+            };
+
+            var strategy = _botStrategyManager.GetOrCreateStrategy(bot.UserId, strat!.Strategy!);
+            choice = strategy.GetNextChoice(context);
+
+            Console.WriteLine("choice from inside NOTnull last" + choice);
+        }
+
+        await HandleTradeInitiationAsync(bot.UserId, target.UserId, choice);
+    }
+    
+    public async Task RespondAsBotAsync(PendingInteraction pending, int playerId, int targetId)
+    {
+        Console.WriteLine("entered it");
+        var bot = await _myDbContext.bot_strat.FirstOrDefaultAsync(b => b.UserId == targetId);
+        var botNr = await _myDbContext.user_data.FirstOrDefaultAsync(u => u.UserId == targetId);
+        var playerNr = await _myDbContext.user_data.FirstOrDefaultAsync(u => u.UserId == playerId);
+
+        var lastInteraction = await _myDbContext.game_session
+            .Where(gs =>
+                (gs.User1 == playerId && gs.User2 == targetId && gs.GameNr2 == botNr!.GameNr) ||
+                (gs.User2 == playerId && gs.User1 == targetId && gs.GameNr1 == botNr!.GameNr))
+            .OrderByDescending(gs => gs.ID)
+            .FirstOrDefaultAsync();
+
+        PlayerChoice? lastOpponentChoice = null;
+        PlayerChoice botResponse;
+
+        if (lastInteraction == null)
+        {
+            botResponse = bot!.Start ? PlayerChoice.Coop : PlayerChoice.Deflect;
+            Console.WriteLine("choice from inside null last" + botResponse);
+            await HandleTradeResponseAsync(pending.PendingId, botResponse);
+        }
+        else if (lastInteraction != null)
+        {
+            if (lastInteraction.User1 == playerId)
+                lastOpponentChoice = Enum.Parse<PlayerChoice>(lastInteraction.Choice1!);
+            else if (lastInteraction.User2 == playerId)
+                lastOpponentChoice = Enum.Parse<PlayerChoice>(lastInteraction.Choice2!);
+
+            var context = new BotContext
+            {
+                OpponentId = playerId,
+                LastOpponentChoice = lastOpponentChoice,
+                Round = await _myDbContext.game_session.CountAsync(gs =>
+                    (gs.User1 == targetId && gs.User2 == playerId && gs.GameNr1 == botNr!.GameNr && gs.GameNr2 == playerNr!.GameNr) ||
+                    (gs.User2 == targetId && gs.User1 == playerId && gs.GameNr2 == botNr!.GameNr && gs.GameNr1 == playerNr!.GameNr))
+            };
+
+            var strategy = _botStrategyManager.GetOrCreateStrategy(botNr!.UserId, bot!.Strategy!);
+            botResponse = strategy.GetNextChoice(context);
+            await HandleTradeResponseAsync(pending.PendingId, botResponse);
+        }
+
+        Console.WriteLine("should exit it" + pending.PendingId);
     }
 
 }

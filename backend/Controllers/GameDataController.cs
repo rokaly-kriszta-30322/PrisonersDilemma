@@ -10,11 +10,13 @@ public class GameDataController : Controller
     private readonly MyDbContext _myDbContext;
     private readonly GameLogic _gameLogic;
     private readonly ActiveUsers _activeUsers;
-    public GameDataController(ActiveUsers activeUsers, MyDbContext myDbContext, GameLogic gameLogic)
-    { 
+        private readonly GameOver _gameOver;
+    public GameDataController(GameOver gameOver, ActiveUsers activeUsers, MyDbContext myDbContext, GameLogic gameLogic)
+    {
         _myDbContext = myDbContext;
         _gameLogic = gameLogic;
         _activeUsers = activeUsers;
+        _gameOver = gameOver;
     }
 
     [HttpGet("data")]
@@ -55,7 +57,7 @@ public class GameDataController : Controller
 
             int userId = int.Parse(userIdClaim);
 
-            await _gameLogic.ResetToStart(userId);
+            await _gameOver.ResetToStart(userId);
 
             return Ok(new { message = "Success." });
         }

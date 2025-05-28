@@ -98,7 +98,7 @@ const GamePage = () => {
         }
       }
 
-    }, 10000);
+    }, 40000);
 
     return () => clearInterval(botInitiationInterval);
   }, [activePlayers, auth.token]);

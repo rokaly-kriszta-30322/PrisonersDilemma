@@ -7,14 +7,14 @@ using Microsoft.EntityFrameworkCore;
 public class BotStrategyController : Controller
 {
     private readonly MyDbContext _myDbContext;
-    private readonly GameLogic _gameLogic;
     private readonly ActiveUsers _activeUsers;
+    private readonly GameLogic _gameLogic;
 
-    public BotStrategyController(MyDbContext myDbContext, GameLogic gameLogic, ActiveUsers activeUsers)
-    { 
+    public BotStrategyController(GameLogic gameLogic, MyDbContext myDbContext, ActiveUsers activeUsers)
+    {
         _myDbContext = myDbContext;
-        _gameLogic = gameLogic;
         _activeUsers = activeUsers;
+        _gameLogic = gameLogic;
     }
 
     [HttpPost("AddBotStrategy")]

@@ -25,7 +25,7 @@ builder.Services.AddScoped<AccessTokenGenerator>();
 builder.Services.AddScoped<IPasswordHasher, BCryptHasher>();
 builder.Services.AddSingleton<ActiveUsers>();
 builder.Services.AddScoped<GameLogic>();
-builder.Services.AddScoped<RoleHandler>();
+builder.Services.AddScoped<GameOver>();
 builder.Services.AddScoped<MatrixHandler>();
 builder.Services.AddSingleton<IBotStrategyManager, BotStrategyManager>();
 //builder.Services.AddHostedService<BotInitiationService>();
