@@ -60,7 +60,7 @@ const LogIn = () => {
     }
 
     return (
-        <>
+        <div className="signup">
             {success ? (
                 <section>
                     <h1>Success!</h1>
@@ -102,7 +102,7 @@ const LogIn = () => {
                     
                 </section>
             )}
-        </>
+        </div>
     )
 }
 

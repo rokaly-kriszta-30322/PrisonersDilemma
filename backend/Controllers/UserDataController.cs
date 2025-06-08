@@ -247,7 +247,6 @@ public class UserDataController : Controller
         }
     }
 
-    [Authorize]
     [HttpPost("logout")]
     public async Task<IActionResult> Logout()
     {

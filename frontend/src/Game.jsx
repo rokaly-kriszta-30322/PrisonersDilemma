@@ -4,6 +4,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import AuthContext from "./context/AuthProvider";
 import { useNavigate } from "react-router-dom";
+import Nav from './Nav';
+import PlayerInfo from './PlayerInfo';
+import PlayerList from './PlayerList';
+import History from './History';
 
 const GamePage = () => {
 
@@ -17,9 +21,10 @@ const GamePage = () => {
   const [selectedBotId, setSelectedBotId] = useState(null);
   const [isActive, setIsActive] = useState(true);
   const navigate = useNavigate();
+  const [history, setHistory] = useState([]);
 
   useEffect(() => {
-    if (auth.user.role !== 'admin') return;
+    if (auth?.user?.role !== 'admin') return;
     const fetchBots = async () => {
       try {
         const response = await axios.get('/UserData/bots', {
@@ -98,7 +103,7 @@ const GamePage = () => {
         }
       }
 
-    }, 40000);
+    }, 7000);
 
     return () => clearInterval(botInitiationInterval);
   }, [activePlayers, auth.token]);
@@ -116,6 +121,19 @@ const GamePage = () => {
         }
       } catch (err) {
         setPendingInteraction(null);
+      }
+    };
+
+    const fetchHistory = async () => {
+      try {
+        const response = await axios.get('/GameSession/history', {
+          headers: {
+            Authorization: `Bearer ${auth.token}`
+          }
+        });
+        setHistory(response.data);
+      } catch (error) {
+        console.error('Error fetching interaction history:', error);
       }
     };
 
@@ -154,10 +172,12 @@ const GamePage = () => {
     };
 
     const interval = setInterval(() => {
+      fetchHistory();
       pollPending();
       pollGameData();
     }, 2000);
 
+    fetchHistory();
     pollPending();
     pollGameData();
 
@@ -247,25 +267,6 @@ const GamePage = () => {
   }
 };
 
-  const handleLogout = async () => {
-    try {
-
-      await axios.post('/UserData/logout', {}, {
-        headers: {
-          Authorization: `Bearer ${auth.token}`
-        }
-      });
-    } catch (err) {
-      console.warn("Logout backend call failed.");
-    }
-
-    navigate('/login');
-    
-    setAuth({});
-    
-    localStorage.removeItem("auth");
-  };
-
   const onBuy = async () => {
     if (auth.user.gameData.moneyPoints <= 500) {
       alert("Not enough money!");
@@ -290,118 +291,45 @@ const GamePage = () => {
       targetUsername: selectedPlayer,
       choice
     });
-
+    setSelectedPlayer('');
     setChoice('');
   }
 };
 
-const filteredPlayers = activePlayers.filter(p => p.userId !== auth.user.userId);
+const filteredPlayers = auth?.user ? activePlayers.filter(p => p.userId !== auth.user.userId) : [];
+
 
   return (
-    <div className="game-container">
-
-      {pendingInteraction && (
-        <div className="popup-overlay">
-          <div className="popup">
-            <h3>New Deal from {pendingInteraction.fromUser}</h3>
-            <button onClick={() => respondToInteraction("Coop")}>Coop</button>
-            <button onClick={() => respondToInteraction("Deflect")}>Deflect</button>
-          </div>
-        </div>
-      )}
-
-      <div className="player-info">
-        <h2>{auth.user.userName}</h2>
-        <p>Money: ${auth.user.gameData.moneyPoints}</p>
-        <div className="matrix-box">
-          <strong>Matrix:</strong>
-          <pre>{JSON.stringify({
-            CoopCoop: auth.user.gameData.coopCoop,
-            CoopDeflect: auth.user.gameData.coopDeflect,
-            DeflectCoop: auth.user.gameData.deflectCoop,
-            DeflectDeflect: auth.user.gameData.deflectDeflect
-          }, null, 2)}</pre>
-        </div>
+    <>
+      <Nav />
+      <div className="game-container">
+        <PlayerInfo
+          auth={auth}
+          bots={bots}
+          isActive={isActive}
+          setIsActive={setIsActive}
+          pendingInteraction={pendingInteraction}
+          setPendingInteraction={setPendingInteraction}
+          selectedBotId={selectedBotId}
+          setSelectedBotId={setSelectedBotId}
+          onBuy={onBuy}
+          handleActivate={handleActivate}
+          handleDeactivate={handleDeactivate}
+          handleToggleActive={handleToggleActive}
+          respondToInteraction={respondToInteraction}
+        />
+        <PlayerList
+          filteredPlayers={filteredPlayers}
+          auth={auth}
+          pendingInteraction={pendingInteraction}
+          setPendingInteraction={setPendingInteraction}
+          onSendChoice={onSendChoice}
+          respondToInteraction={respondToInteraction}
+        />
+        
       </div>
-      <button onClick={handleLogout} className="logout-button">Logout</button>
-      <button onClick={onBuy} className="buy-button">
-        Buy
-      </button>
-
-      <div className="interaction-box">
-        <table>
-          <thead>
-            <tr>
-              <th>Player</th>
-              <th>Money</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredPlayers.map((player) => (
-              <tr key={player.userId}>
-                <td>{player.userName}</td>
-                <td>{player.moneyPoints}</td>
-                <td>
-                  <button
-                    onClick={() =>
-                      onSendChoice({
-                        initiatorUsername: auth.user.userName,
-                        targetUsername: player.userName,
-                        choice: 'Coop'
-                      })
-                    }
-                  >
-                    Coop
-                  </button>
-                  <button
-                    onClick={() =>
-                      onSendChoice({
-                        initiatorUsername: auth.user.userName,
-                        targetUsername: player.userName,
-                        choice: 'Deflect'
-                      })
-                    }
-                  >
-                    Deflect
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <>
-          {auth.user?.role === 'admin' && (
-            <div>
-              <h3>Bot Management</h3>
-              <select
-                value={selectedBotId || ""}
-                onChange={(e) => setSelectedBotId(parseInt(e.target.value))}
-              >
-                <option value="" disabled>Select a bot</option>
-                {bots.map((bot) => (
-                  <option key={bot.userId} value={bot.userId}>
-                    {bot.userName}
-                  </option>
-                ))}
-              </select>
-              <div style={{ marginTop: "10px" }}>
-                <button onClick={handleActivate} disabled={!selectedBotId}>
-                  Activate
-                </button>
-                <button onClick={handleDeactivate} disabled={!selectedBotId} style={{ marginLeft: "10px" }}>
-                  Deactivate
-                </button>
-              </div>
-              <button onClick={handleToggleActive}>
-                {isActive ? "Spectate" : "Join"}
-              </button>
-            </div>
-          )}
-        </>
-      </div>
-    </div>
-    
+      <History history={history} />
+    </>
   );
 };
 

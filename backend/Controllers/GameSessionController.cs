@@ -67,6 +67,49 @@ public class GameSessionController : Controller
     }
 
     [Authorize]
+    [HttpGet("history")]
+    public async Task<IActionResult> GetHistory()
+    {
+        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (claim == null || !int.TryParse(claim.Value, out int userId))
+            return Unauthorized("Invalid or missing user claim.");
+
+        var user = await _myDbContext.user_data.FirstOrDefaultAsync(u => u.UserId == userId);
+        if (user == null)
+            return NotFound("User not found.");
+
+        var sessions = await _myDbContext.game_session
+        .Where(gs =>
+            (gs.User1 == userId && gs.GameNr1 == user!.GameNr) ||
+            (gs.User2 == userId && gs.GameNr2 == user!.GameNr))
+        .OrderByDescending(gs => gs.ID)
+        .Take(10)
+        .ToListAsync();
+
+        var history = new List<object>();
+
+        foreach (var gs in sessions)
+        {
+            bool isUser1 = gs.User1 == userId;
+            int opponentId = isUser1 ? gs.User2 : gs.User1;
+
+            var opponent = await _myDbContext.user_data.FindAsync(opponentId);
+            string opponentName = opponent?.UserName ?? "Unknown";
+
+            var entry = new
+            {
+                OpponentName = opponentName,
+                YourChoice = isUser1 ? gs.Choice1 : gs.Choice2,
+                OpponentChoice = isUser1 ? gs.Choice2 : gs.Choice1
+            };
+
+            history.Add(entry);
+        }
+
+        return Ok(history);
+    }
+
+    [Authorize]
     [HttpPost("game/respond")]
     public async Task<IActionResult> RespondToInteraction([FromBody] TradeResponse response)
     {

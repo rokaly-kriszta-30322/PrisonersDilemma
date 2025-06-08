@@ -86,7 +86,7 @@ const SignUp = () => {
     }
 
     return (
-        <>
+        <div className="signup">
             {success ? (
                 <section>
                     <h1>Success!</h1>
@@ -189,7 +189,7 @@ const SignUp = () => {
                     </form>
                 </section>
             )}
-        </>
+        </div>
     )
 }
 
