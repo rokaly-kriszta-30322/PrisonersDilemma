@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\K\\Uni\\Anul_IV\\proj\\backend\\backend.csproj": {}
+    "d:\\K\\Uni\\Anul_IV\\proj\\backend\\backend.csproj": {}
   },
   "projects": {
-    "D:\\K\\Uni\\Anul_IV\\proj\\backend\\backend.csproj": {
+    "d:\\K\\Uni\\Anul_IV\\proj\\backend\\backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\K\\Uni\\Anul_IV\\proj\\backend\\backend.csproj",
+        "projectUniqueName": "d:\\K\\Uni\\Anul_IV\\proj\\backend\\backend.csproj",
         "projectName": "backend",
-        "projectPath": "D:\\K\\Uni\\Anul_IV\\proj\\backend\\backend.csproj",
+        "projectPath": "d:\\K\\Uni\\Anul_IV\\proj\\backend\\backend.csproj",
         "packagesPath": "C:\\Users\\rokal\\.nuget\\packages\\",
-        "outputPath": "D:\\K\\Uni\\Anul_IV\\proj\\backend\\obj\\",
+        "outputPath": "d:\\K\\Uni\\Anul_IV\\proj\\backend\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

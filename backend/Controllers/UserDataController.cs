@@ -123,54 +123,6 @@ public class UserDataController : Controller
         }
     }
 
-    [HttpGet("GetAllUsers")] //
-    public async Task<IActionResult> GetAllUsers()
-    {
-        try
-        {
-            var users = await _myDbContext.user_data.ToListAsync();
-
-            if (users == null || !users.Any())
-            {
-                return NotFound("No users found.");
-            }
-
-            return Ok(users);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Error in GetAllUsers: " + ex.Message);
-            return StatusCode(500, "Internal server error.");
-        }
-    }
-
-    [HttpPost("AddUser")]
-    public async Task<IActionResult> AddSession([FromBody] UserDataDto userRequest)
-    {
-        var passwordHash = _passwordHasher.HashPassword(userRequest.Password!);
-        var userEntity = new UserData
-        {
-            UserName = userRequest.UserName,
-            Password = passwordHash,
-            Role = userRequest.Role!,
-            MaxTurns = userRequest.MaxTurns,
-            GameNr = userRequest.GameNr
-        };
-
-        await _myDbContext.user_data.AddAsync(userEntity);
-        await _myDbContext.SaveChangesAsync();
-
-        var gdata = new GameData(userEntity.UserId);
-
-        await _myDbContext.game_data.AddAsync(gdata);
-        await _myDbContext.SaveChangesAsync();
-
-        userEntity.GameData = gdata;
-        await _myDbContext.SaveChangesAsync();
-
-        return Ok("User added");
-    }
-
     [HttpPost("resetTurnsNrs")]
     public async Task<IActionResult> ResetUserTurnsNrsAsync(int userId)
     {
@@ -186,27 +138,6 @@ public class UserDataController : Controller
 
         return Ok("User state reset to 0.");
     }
-
-    [HttpGet("GetUser/{id}")]
-    public async Task<IActionResult> GetUser(int id)
-    {
-        var user = await _myDbContext.user_data.FirstOrDefaultAsync(u => u.UserId == id);
-
-        if (user == null)
-        {
-            return NotFound("User not found.");
-        }
-        return Ok(user);
-    }
-
-    [Authorize]
-    [HttpGet("GetUser")]
-    public IActionResult GetUser()
-    {
-        string username = User.Identity?.Name ?? "Unknown";
-        return Ok($"Welcome, {username}");
-    }
-
 
     [HttpPost("signup")]
     public async Task<IActionResult> AddUser([FromBody] UserRequest userRequest)
@@ -336,7 +267,67 @@ public class UserDataController : Controller
         }
     }
 
-    [HttpDelete("DeleteUser/{id}")] //del account
+    [HttpGet("GetAllUsers")]
+    public async Task<IActionResult> GetAllUsers()
+    {
+        try
+        {
+            var users = await _myDbContext.user_data.ToListAsync();
+
+            if (users == null || !users.Any())
+            {
+                return NotFound("No users found.");
+            }
+
+            return Ok(users);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error in GetAllUsers: " + ex.Message);
+            return StatusCode(500, "Internal server error.");
+        }
+    }
+
+    [HttpGet("GetUser/{id}")]
+    public async Task<IActionResult> GetUser(int id)
+    {
+        var user = await _myDbContext.user_data.FirstOrDefaultAsync(u => u.UserId == id);
+
+        if (user == null)
+        {
+            return NotFound("User not found.");
+        }
+        return Ok(user);
+    }
+
+    [HttpPost("AddUser")]
+    public async Task<IActionResult> AddSession([FromBody] UserDataDto userRequest)
+    {
+        var passwordHash = _passwordHasher.HashPassword(userRequest.Password!);
+        var userEntity = new UserData
+        {
+            UserName = userRequest.UserName,
+            Password = passwordHash,
+            Role = userRequest.Role!,
+            MaxTurns = userRequest.MaxTurns,
+            GameNr = userRequest.GameNr
+        };
+
+        await _myDbContext.user_data.AddAsync(userEntity);
+        await _myDbContext.SaveChangesAsync();
+
+        var gdata = new GameData(userEntity.UserId);
+
+        await _myDbContext.game_data.AddAsync(gdata);
+        await _myDbContext.SaveChangesAsync();
+
+        userEntity.GameData = gdata;
+        await _myDbContext.SaveChangesAsync();
+
+        return Ok("User added");
+    }
+
+    [HttpDelete("DeleteUser/{id}")]
     public async Task<IActionResult> DeleteUser(int id)
     {
         try {
@@ -355,82 +346,6 @@ public class UserDataController : Controller
             Console.WriteLine("Error while adding user: " + ex.Message);
             return StatusCode(500, "An error occurred while creating the user.");
         }
-    }
-
-    [HttpPut("UpdateUser/{id}")] //
-    public async Task<IActionResult> UpdateUser(int id, [FromBody] UserData userRequest)
-    {
-
-        var existingUser = await _myDbContext.user_data.FindAsync(id);
-
-        if (existingUser == null)
-        {
-            return NotFound("User not found.");
-        }
-
-        existingUser.UserName = userRequest.UserName;
-        existingUser.Password = userRequest.Password;
-        existingUser.MaxTurns = userRequest.MaxTurns;
-        existingUser.GameNr = userRequest.GameNr;
-
-        await _myDbContext.SaveChangesAsync();
-
-        return Ok("User updated successfully.");
-    }
-
-    [HttpPut("UpdateUserData/{id}")] //change password or username
-    public async Task<IActionResult> UpdateUserData(int id, [FromBody] UserRequest userRequest)
-    {
-
-        var existingUser = await _myDbContext.user_data.FindAsync(id);
-
-        if (existingUser == null)
-        {
-            return NotFound("User not found.");
-        }
-
-        existingUser.UserName = userRequest.UserName;
-        existingUser.Password = userRequest.Password;
-
-        await _myDbContext.SaveChangesAsync();
-
-        return Ok("User updated successfully.");
-    }
-
-    [HttpPut("UpdateGameNr/{id}")] //new game
-    public async Task<IActionResult> UpdateMoney(int id, [FromBody] UserData userRequest)
-    {
-
-        var existingUser = await _myDbContext.user_data.FindAsync(id);
-
-        if (existingUser == null)
-        {
-            return NotFound("User not found.");
-        }
-
-        existingUser.GameNr = userRequest.GameNr;
-
-        await _myDbContext.SaveChangesAsync();
-
-        return Ok("User updated successfully.");
-    }
-
-    [HttpPut("UpdateTurn/{id}")] //new turn
-    public async Task<IActionResult> UpdateTurn(int id, [FromBody] UserData userRequest)
-    {
-
-        var existingUser = await _myDbContext.user_data.FindAsync(id);
-
-        if (existingUser == null)
-        {
-            return NotFound("User not found.");
-        }
-
-        existingUser.MaxTurns = userRequest.MaxTurns;
-
-        await _myDbContext.SaveChangesAsync();
-
-        return Ok("User updated successfully.");
     }
 
 }

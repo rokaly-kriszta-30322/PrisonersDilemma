@@ -10,7 +10,7 @@ public class GameSessionController : Controller
     private readonly MyDbContext _myDbContext;
     private readonly GameLogic _gameLogic;
     public GameSessionController(MyDbContext myDbContext, GameLogic gameLogic)
-    { 
+    {
         _myDbContext = myDbContext;
         _gameLogic = gameLogic;
     }
@@ -26,7 +26,7 @@ public class GameSessionController : Controller
         var target = await _myDbContext.user_data.FirstOrDefaultAsync(u => u.UserName == request.UserName2);
         if (target == null)
             return NotFound("Target not found");
-        
+
         var initiatorBusy = await _myDbContext.pending_interactions
             .AnyAsync(p => p.UserId == initiator.UserId || p.TargetId == initiator.UserId);
         if (initiatorBusy)
@@ -59,7 +59,8 @@ public class GameSessionController : Controller
         if (sender == null)
             return NotFound("Sender not found.");
 
-        return Ok(new {
+        return Ok(new
+        {
             pending.PendingId,
             FromUser = sender.UserName,
             pending.UserChoice
@@ -138,82 +139,6 @@ public class GameSessionController : Controller
         }
     }
 
-    [HttpGet("GetAllSessions")]
-    public async Task<IActionResult> GetAllSessions()
-    {
-        var sessions = await _myDbContext.game_session.ToListAsync();
-        return Ok(sessions);
-    }
-
-    [HttpPost("AddSession")] //one action happened
-    public async Task<IActionResult> AddSession([FromBody] GameSession userRequest)
-    {
-        await _myDbContext.AddAsync(userRequest);
-        await _myDbContext.SaveChangesAsync();
-        
-        return Ok(userRequest);
-    }
-
-    [HttpDelete("DeleteSession/{id}")] //nope
-    public async Task<IActionResult> DeleteSession(int id)
-    {
-        var session = await _myDbContext.game_session.FindAsync(id);
-        if (session == null)
-        {
-            return NotFound("Session not found.");
-        }
-
-        _myDbContext.game_session.Remove(session);
-        await _myDbContext.SaveChangesAsync();
-
-        return Ok("Session deleted successfully.");
-    }
-
-    [HttpDelete("DeleteAllSessions")]
-    public async Task<IActionResult> DeleteAllSessions()
-    {
-        var allSessions = _myDbContext.game_session;
-
-        _myDbContext.game_session.RemoveRange(allSessions);
-        await _myDbContext.SaveChangesAsync();
-
-        return Ok("All sessions deleted successfully.");
-    }
-
-    [HttpPut("UpdateSession/{id}")] //nope
-    public async Task<IActionResult> UpdateUser(int id, GameSession userRequest)
-    {
-
-        var existingSession = await _myDbContext.game_session.FindAsync(id);
-
-        if (existingSession == null)
-        {
-            return NotFound("Session not found.");
-        }
-
-        existingSession.ID = userRequest.ID;
-        existingSession.User1 = userRequest.User1;
-        existingSession.Choice1 = userRequest.Choice1;
-        existingSession.GameNr1 = userRequest.GameNr1;
-        existingSession.MoneyPoints1 = userRequest.MoneyPoints1;
-        existingSession.CoopCoop1 = userRequest.CoopCoop1;
-        existingSession.CoopDeflect1 = userRequest.CoopDeflect1;
-        existingSession.DeflectCoop1 = userRequest.DeflectCoop1;
-        existingSession.DeflectDeflect1 = userRequest.DeflectDeflect1;
-        existingSession.User2 = userRequest.User2;
-        existingSession.Choice2 = userRequest.Choice2;
-        existingSession.GameNr2 = userRequest.GameNr2;
-        existingSession.MoneyPoints2 = userRequest.MoneyPoints2;
-        existingSession.CoopCoop2 = userRequest.CoopCoop2;
-        existingSession.CoopDeflect2 = userRequest.CoopDeflect2;
-        existingSession.DeflectCoop2 = userRequest.DeflectCoop2;
-        existingSession.DeflectDeflect2 = userRequest.DeflectDeflect2;
-
-        await _myDbContext.SaveChangesAsync();
-
-        return Ok("Session updated successfully.");
-    }
-
     [HttpPost("Action")]
     public async Task<IActionResult> SubmitMove([FromBody] GameSessionRequest request)
     {
@@ -226,6 +151,17 @@ public class GameSessionController : Controller
     {
         await _gameLogic.HandleTradeResponseAsync(response.PendingId, response.TargetChoice);
         return Ok();
+    }
+    
+    [HttpDelete("DeleteAllSessions")]
+    public async Task<IActionResult> DeleteAllSessions()
+    {
+        var allSessions = _myDbContext.game_session;
+
+        _myDbContext.game_session.RemoveRange(allSessions);
+        await _myDbContext.SaveChangesAsync();
+
+        return Ok("All sessions deleted successfully.");
     }
 
 }
