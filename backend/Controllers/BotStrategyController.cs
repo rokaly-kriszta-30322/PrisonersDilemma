@@ -51,41 +51,18 @@ public class BotStrategyController : Controller
         return Ok("Bot strategy saved.");
     }
 
-    [HttpPost("interaction/initiate")]
-    public async Task<IActionResult> BotInitiate([FromBody] BotInitiation dto)
+    [HttpDelete("DeleteBotStrategy/{botId}")]
+    public async Task<IActionResult> DeleteBotStrategy(int botId)
     {
-        var activeIds = _activeUsers.GetActiveUserIds();
+        var strategy = await _myDbContext.bot_strat.FirstOrDefaultAsync(b => b.UserId == botId);
 
-        var bot = await _myDbContext.user_data.FirstOrDefaultAsync(u =>
-            u.UserId == dto.BotId && u.Role == "bot" && activeIds.Contains(u.UserId));
-        if (bot == null)
-            return NotFound("Bot not found or inactive");
+        if (strategy == null)
+            return NotFound("Bot strategy not found.");
 
-        var hasPending = await _myDbContext.pending_interactions
-            .AnyAsync(p => p.UserId == dto.BotId || p.TargetId == dto.BotId);
-        if (hasPending)
-            return BadRequest("Bot already has a pending interaction");
+        _myDbContext.bot_strat.Remove(strategy);
+        await _myDbContext.SaveChangesAsync();
 
-        var target = await _myDbContext.user_data.FirstOrDefaultAsync(u =>
-            u.UserName == dto.TargetName && activeIds.Contains(u.UserId));
-        if (target == null)
-            return NotFound("Target user not found or inactive");
-
-        var targetPending = await _myDbContext.pending_interactions
-            .AnyAsync(p => p.UserId == target.UserId || p.TargetId == target.UserId);
-        if (targetPending)
-            return BadRequest("Target already has a pending interaction");
-
-        await _gameLogic.InitiateBackup(bot,target);
-
-        return Ok("Interaction initiated");
-    }
-
-    [HttpGet("pending/bot/{botId}")]
-    public async Task<IActionResult> GetPendingForBot(int botId)
-    {
-        var pending = await _myDbContext.pending_interactions.FirstOrDefaultAsync(p => p.UserId == botId || p.TargetId == botId);
-        return pending == null ? NoContent() : Ok(pending);
+        return Ok("Bot strategy deleted.");
     }
 
 }

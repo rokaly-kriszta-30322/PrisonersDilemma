@@ -28,7 +28,7 @@ builder.Services.AddScoped<GameLogic>();
 builder.Services.AddScoped<GameOver>();
 builder.Services.AddScoped<MatrixHandler>();
 builder.Services.AddSingleton<IBotStrategyManager, BotStrategyManager>();
-//builder.Services.AddHostedService<BotInitiationService>();
+builder.Services.AddHostedService<BotInitiationService>();
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information);
 builder.Services.AddHttpContextAccessor();
 

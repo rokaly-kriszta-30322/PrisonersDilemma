@@ -1,7 +1,5 @@
 import { useRef, useState, useEffect, useContext } from "react";
 import axios from "./api/axios";
-import React from 'react';
-import { Link } from 'react-router-dom';
 import AuthContext from "./context/AuthProvider";
 import { useNavigate } from "react-router-dom";
 import Nav from './Nav';
@@ -42,6 +40,7 @@ const GamePage = () => {
   }, [auth.token]);
 
   useEffect(() => {
+    if (!auth?.token) return;
     const fetchActivePlayers = async () => {
       try {
         const response = await axios.get('/UserData/users/active', {
@@ -63,52 +62,7 @@ const GamePage = () => {
   }, [auth.token]);
 
   useEffect(() => {
-    const botInitiationInterval = setInterval(async () => {
-      const bots = activePlayers.filter(p => p.role === 'bot');
-
-      for (const bot of bots) {
-        try {
-          const pendingRes = await axios.get(`/BotStrategy/pending/bot/${bot.userId}`, {
-            headers: { Authorization: `Bearer ${auth.token}` },
-            validateStatus: () => true
-          });
-          console.log(`status ${pendingRes.status}`);
-          if (pendingRes.status === 204) {
-            const candidates = activePlayers.filter(p => p.userId !== bot.userId);
-            console.log(`candidates ${candidates.length}`);
-            activePlayers.forEach(p => console.log(`User: ${p.userName}, Id: ${p.userId} (${typeof p.userId})`));
-            console.log(`bot userid ${bot.userId}`);
-            if (candidates.length === 0) continue;
-            
-            const randomTarget = candidates[Math.floor(Math.random() * candidates.length)];
-
-            console.log(`Bots`, candidates);
-
-            await axios.post(`/BotStrategy/interaction/initiate`, {
-              botId: bot.userId,
-              targetName: randomTarget.userName
-            }, {
-              headers: { Authorization: `Bearer ${auth.token}` }
-            });
-
-            console.log(`Bot ${bot.userName} initiated with ${randomTarget.userName}`);
-          }
-
-        } catch (err) {
-          console.error(`Bot ${bot.userName} initiation failed:`, err);
-
-          if (err.response && err.response.data) {
-            console.error(`Error message from backend: ${err.response.data}`);
-          }
-        }
-      }
-
-    }, 5000);
-
-    return () => clearInterval(botInitiationInterval);
-  }, [activePlayers, auth.token]);
-
-  useEffect(() => {
+    if (!auth?.token) return;
     const pollPending = async () => {
       try {
         const response = await axios.get('/GameSession/game/pending', {

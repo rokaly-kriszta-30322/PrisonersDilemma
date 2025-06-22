@@ -23,6 +23,7 @@ public class TesterStrat : IBotStrategy, IResettableBotStrategy
 
         if (state.FirstOpponentChoice == PlayerChoice.Deflect)
         {
+            if (context.Round == 2) return PlayerChoice.Coop;
             Console.WriteLine("Entered Tit-for-Tat route");
             return context.LastOpponentChoice ?? PlayerChoice.Coop;
         }

@@ -17,7 +17,7 @@ const PlayerInfo = ({
 }) => {
   return (
     <div className="player-info">
-        
+        {auth.user?.gameData ? (
         <div className="player">
           <h2>Player Info</h2>
           <h3>Money: ${auth.user?.gameData?.moneyPoints ?? "Loading..."}</h3>
@@ -45,6 +45,12 @@ const PlayerInfo = ({
             </table>
           </div>
         </div>
+        ) : (
+          <div className="player">
+            <h2>Player Info</h2>
+            <h3>Loading...</h3>
+          </div>
+        )}
         <button onClick={onBuy} className="buy-button">
           Buy
         </button>

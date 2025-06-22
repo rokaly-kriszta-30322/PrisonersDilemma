@@ -52,10 +52,10 @@ public class GameOver
 
     public async Task NoMoneyAsync(int userId)
     {
+        _activeUsers.RemoveUser(userId);
+
         var user = await _myDbContext.user_data.FirstOrDefaultAsync(u => u.UserId == userId);
         if (user == null) return;
-
-        _activeUsers.RemoveUser(userId);
 
         if (user.Role == "bot")
         {

@@ -327,6 +327,27 @@ public class UserDataController : Controller
         return Ok("User added");
     }
 
+    [HttpPut("UpdateUser/{userId}")]
+    public async Task<IActionResult> UpdateUser(int userId, [FromBody] UserDataDto userRequest)
+    {
+        var user = await _myDbContext.user_data.FindAsync(userId);
+        if (user == null)
+            return NotFound("User not found.");
+
+        user.UserName = userRequest.UserName;
+        if (!string.IsNullOrEmpty(userRequest.Password))
+        {
+            user.Password = _passwordHasher.HashPassword(userRequest.Password);
+        }
+        user.Role = userRequest.Role!;
+        user.MaxTurns = userRequest.MaxTurns;
+        user.GameNr = userRequest.GameNr;
+
+        await _myDbContext.SaveChangesAsync();
+
+        return Ok("User updated");
+    }
+
     [HttpDelete("DeleteUser/{id}")]
     public async Task<IActionResult> DeleteUser(int id)
     {

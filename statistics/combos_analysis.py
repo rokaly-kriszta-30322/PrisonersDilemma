@@ -13,7 +13,7 @@ bot_names = {
     2041: "random",
     2042: "alwaysdefect",
     2043: "alwayscoop",
-    2045: "twotitfortat",
+    2045: "twotitsfortat",
     2046: "probe",
     2047: "grudge",
     2048: "tester"
@@ -39,12 +39,14 @@ df_user1 = df_all[['user1_id', 'choice_type', 'm_points', 'Bot1', 'Bot2']].renam
 'user1_id': 'BotID', 'choice_type': 'Choice', 'm_points': 'MoneyPoints'
 })
 df_user2 = df_all[['user2_id', 'choice_type2', 'm_points2', 'Bot2', 'Bot1']].rename(columns={
-    'User2': 'BotID', 'Choice2': 'Choice', 'MoneyPoints2': 'MoneyPoints'
+    'user2_id': 'BotID', 'choice_type2': 'Choice', 'm_points2': 'MoneyPoints'
 })
 
 df_combined = pd.concat([df_user1, df_user2], ignore_index=True)
 
 df_combined['BotID'] = df_combined['BotID'].map(bot_names).fillna(df_combined['BotID'])
+
+print(df_combined['BotID'].value_counts())
 
 bot_summary = df_combined.groupby('BotID').agg(
     TotalMoney=('MoneyPoints', 'sum'),
@@ -66,7 +68,7 @@ bot_summary_sorted = bot_summary.sort_values(by="TotalMoney", ascending=False)
 plt.figure(figsize=(12, 6))
 sns.barplot(x=bot_summary_sorted.index.astype(str), y="TotalMoney", data=bot_summary_sorted)
 plt.title("Total Money Earned by Bot")
-plt.xlabel("Bot ID")
+plt.xlabel("Strategies")
 plt.ylabel("Total Money")
 plt.xticks(rotation=45)
 plt.tight_layout()
@@ -75,7 +77,7 @@ plt.show()
 plt.figure(figsize=(12, 6))
 bot_summary_sorted[['CoopRate', 'DeflectRate', 'BuyRate']].plot(kind='bar', stacked=True)
 plt.title("Choice Distribution by Bot")
-plt.xlabel("Bot ID")
+plt.xlabel("Strategies")
 plt.ylabel("Rate")
 plt.xticks(rotation=45)
 plt.legend(title="Choice Type")
