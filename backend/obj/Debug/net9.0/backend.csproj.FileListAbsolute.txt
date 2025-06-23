@@ -169,3 +169,5 @@ D:\K\Uni\Anul_IV\proj\backend\bin\Debug\net9.0\package-lock.json
 D:\K\Uni\Anul_IV\proj\backend\bin\Debug\net9.0\package.json
 D:\K\Uni\Anul_IV\proj\backend\bin\Debug\net9.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 D:\K\Uni\Anul_IV\proj\backend\obj\Debug\net9.0\backend.sourcelink.json
+D:\K\Uni\Anul_IV\proj\backend\bin\Debug\net9.0\Newtonsoft.Json.dll
+D:\K\Uni\Anul_IV\proj\backend\bin\Debug\net9.0\System.Net.WebSockets.WebSocketProtocol.dll

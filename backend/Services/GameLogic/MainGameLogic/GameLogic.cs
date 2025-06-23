@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 public class GameLogic
@@ -6,13 +7,15 @@ public class GameLogic
     private readonly MatrixHandler _matrixHandler;
     private readonly IBotStrategyManager _botStrategyManager;
     private readonly GameOver _gameOver;
+    private readonly IHubContext<GameHub> _hub;
 
-    public GameLogic(IBotStrategyManager botStrategyManager, GameOver gameOver, MatrixHandler matrixHandler, MyDbContext myDbContext)
+    public GameLogic(IBotStrategyManager botStrategyManager, GameOver gameOver, MatrixHandler matrixHandler, MyDbContext myDbContext, IHubContext<GameHub> hubContext)
     {
         _myDbContext = myDbContext;
         _matrixHandler = matrixHandler;
         _botStrategyManager = botStrategyManager;
         _gameOver = gameOver;
+        _hub = hubContext;
     }
 
     public async Task GetUserIdAsync(GameSessionRequest request)
@@ -189,18 +192,20 @@ public class GameLogic
             if (bot!.MoneyLimit < targetData.MoneyPoints && bot.MoneyLimit != 0) await HandleBuyAsync(targetUser.UserId);
         }
 
+        var removeIds = new List<int>();
+        if (playerData.MoneyPoints <= 0)
+            removeIds.Add(playerData.UserId);
+        if (targetData.MoneyPoints <= 0)
+            removeIds.Add(targetData.UserId);
+
+        foreach (var id in removeIds)
+        {
+            await _gameOver.NoMoneyAsync(id);
+        }
+
         _myDbContext.game_session.Add(gameSession);
         _myDbContext.pending_interactions.Remove(pending);
         await _myDbContext.SaveChangesAsync();
-
-        var removalTasks = new List<Task>();
-        if (playerData.MoneyPoints <= 0)
-            removalTasks.Add(_gameOver.NoMoneyAsync(playerData.UserId));
-        if (targetData.MoneyPoints <= 0)
-            removalTasks.Add(_gameOver.NoMoneyAsync(targetData.UserId));
-
-        if (removalTasks.Count > 0)
-            await Task.WhenAll(removalTasks);
 
         Console.WriteLine("should be saved and inserted");
     }

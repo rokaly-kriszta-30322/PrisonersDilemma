@@ -51,6 +51,20 @@ public class BotStrategyController : Controller
         return Ok("Bot strategy saved.");
     }
 
+    [HttpPut("UpdateMoneyLimit")]
+    public async Task<IActionResult> UpdateBotMoneyLimit([FromBody] MoneyLimitDto dto)
+    {
+        var strategy = await _myDbContext.bot_strat.FirstOrDefaultAsync(b => b.UserId == dto.UserId);
+
+        if (strategy == null)
+            return NotFound("Bot strategy not found.");
+
+        strategy.MoneyLimit = dto.MoneyLimit;
+        await _myDbContext.SaveChangesAsync();
+
+        return Ok("Money limit updated.");
+    }
+
     [HttpDelete("DeleteBotStrategy/{botId}")]
     public async Task<IActionResult> DeleteBotStrategy(int botId)
     {

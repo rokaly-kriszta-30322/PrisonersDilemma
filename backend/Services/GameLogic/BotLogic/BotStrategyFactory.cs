@@ -18,8 +18,6 @@ public static class BotStrategyFactory
             "coop" => new AlwaysCoopStrat(),
             "deflect" => new AlwaysDeflectStrat(),
             "titfortat" => new TitForTatStrat(),
-            "titfortatminlimit" => new TitForTatStrat(),
-            "titfortatmaxlimit" => new TitForTatStrat(),
             "sneaky" => new SneakyTitForTatStrat(),
             "tester" => new TesterStrat(),
             "sample" => new TwoTitsForTatStrat(),
