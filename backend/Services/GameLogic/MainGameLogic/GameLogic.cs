@@ -181,16 +181,6 @@ public class GameLogic
             DeflectCoop2 = targetData.DeflectCoop,
             DeflectDeflect2 = targetData.DeflectDeflect
         };
-        if (playerUser!.Role == "bot")
-        {
-            var bot = await _myDbContext.bot_strat.FirstOrDefaultAsync(b => b.UserId == playerUser.UserId);
-            if (bot!.MoneyLimit < playerData.MoneyPoints && bot.MoneyLimit != 0) await HandleBuyAsync(playerUser.UserId);
-        }
-        else if (targetUser!.Role == "bot")
-        {
-            var bot = await _myDbContext.bot_strat.FirstOrDefaultAsync(b => b.UserId == targetUser.UserId);
-            if (bot!.MoneyLimit < targetData.MoneyPoints && bot.MoneyLimit != 0) await HandleBuyAsync(targetUser.UserId);
-        }
 
         var removeIds = new List<int>();
         if (playerData.MoneyPoints <= 0)
@@ -204,6 +194,19 @@ public class GameLogic
         }
 
         _myDbContext.game_session.Add(gameSession);
+        await _myDbContext.SaveChangesAsync();
+
+        if (playerUser!.Role == "bot")
+        {
+            var bot = await _myDbContext.bot_strat.FirstOrDefaultAsync(b => b.UserId == playerUser.UserId);
+            if (bot!.MoneyLimit < playerData.MoneyPoints && bot.MoneyLimit != 0) await HandleBuyAsync(playerUser.UserId);
+        }
+        if (targetUser!.Role == "bot")
+        {
+            var bot = await _myDbContext.bot_strat.FirstOrDefaultAsync(b => b.UserId == targetUser.UserId);
+            if (bot!.MoneyLimit < targetData.MoneyPoints && bot.MoneyLimit != 0) await HandleBuyAsync(targetUser.UserId);
+        }
+
         _myDbContext.pending_interactions.Remove(pending);
         await _myDbContext.SaveChangesAsync();
 

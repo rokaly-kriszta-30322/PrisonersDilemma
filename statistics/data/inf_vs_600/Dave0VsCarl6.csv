@@ -1,0 +1,10 @@
+user1_id,choice_type,game_nr,m_points,coopcoop,coopdeflect,deflectcoop,deflectdeflect,user2_id,choice_type2,game2_nr,m_points2,coopcoop2,coopdeflect2,deflectcoop2,deflectdeflect2,ID
+2042,Deflect,0,120,8,20,-12,-5,2043,Coop,0,88,8,20,-12,-5,98041
+2043,Coop,0,76,8,20,-12,-5,2042,Deflect,0,140,8,20,-12,-5,98042
+2042,Deflect,0,160,8,20,-12,-5,2043,Coop,0,64,8,20,-12,-5,98043
+2043,Coop,0,52,8,20,-12,-5,2042,Deflect,0,180,8,20,-12,-5,98044
+2042,Deflect,0,200,8,20,-12,-5,2043,Coop,0,40,8,20,-12,-5,98045
+2043,Coop,0,28,8,20,-12,-5,2042,Deflect,0,220,8,20,-12,-5,98046
+2042,Deflect,0,240,8,20,-12,-5,2043,Coop,0,16,8,20,-12,-5,98047
+2043,Coop,0,4,8,20,-12,-5,2042,Deflect,0,260,8,20,-12,-5,98048
+2042,Deflect,0,280,8,20,-12,-5,2043,Coop,0,-8,8,20,-12,-5,98049
