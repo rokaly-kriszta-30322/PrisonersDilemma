@@ -15,6 +15,9 @@ public class UserData
     public int MaxTurns { get; set; }
     public int GameNr { get; set; }
 
+    [ForeignKey("UserId")]
     public GameData? GameData { get; set; }
+    
+    [ForeignKey("UserId")]
     public BotStrategy? BotStrategy { get; set; }
 }

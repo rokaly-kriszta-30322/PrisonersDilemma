@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 public class GameLogic
@@ -7,15 +6,13 @@ public class GameLogic
     private readonly MatrixHandler _matrixHandler;
     private readonly IBotStrategyManager _botStrategyManager;
     private readonly GameOver _gameOver;
-    private readonly IHubContext<GameHub> _hub;
 
-    public GameLogic(IBotStrategyManager botStrategyManager, GameOver gameOver, MatrixHandler matrixHandler, MyDbContext myDbContext, IHubContext<GameHub> hubContext)
+    public GameLogic(IBotStrategyManager botStrategyManager, GameOver gameOver, MatrixHandler matrixHandler, MyDbContext myDbContext)
     {
         _myDbContext = myDbContext;
         _matrixHandler = matrixHandler;
         _botStrategyManager = botStrategyManager;
         _gameOver = gameOver;
-        _hub = hubContext;
     }
 
     public async Task GetUserIdAsync(GameSessionRequest request)

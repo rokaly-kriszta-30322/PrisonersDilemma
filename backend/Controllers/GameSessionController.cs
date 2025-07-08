@@ -138,20 +138,6 @@ public class GameSessionController : Controller
             return BadRequest($"Buy failed: {ex.Message}");
         }
     }
-
-    [HttpPost("Action")]
-    public async Task<IActionResult> SubmitMove([FromBody] GameSessionRequest request)
-    {
-        await _gameLogic.GetUserIdAsync(request);
-        return Ok();
-    }
-
-    [HttpPost("ResponseToTrade")]
-    public async Task<IActionResult> RespondToTrade([FromBody] TradeResponse response)
-    {
-        await _gameLogic.HandleTradeResponseAsync(response.PendingId, response.TargetChoice);
-        return Ok();
-    }
     
     [HttpDelete("DeleteAllSessions")]
     public async Task<IActionResult> DeleteAllSessions()

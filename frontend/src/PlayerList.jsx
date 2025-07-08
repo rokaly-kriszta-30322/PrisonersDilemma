@@ -1,4 +1,3 @@
-// components/PlayerList.jsx
 import React from 'react';
 
 const PlayerList = ({

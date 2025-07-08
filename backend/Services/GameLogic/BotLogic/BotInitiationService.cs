@@ -34,6 +34,8 @@ public class BotInitiationService : BackgroundService
                     if (!activeUsers.IsUserActive(bot.UserId)) continue;
                     if (activeUsers.IsUserBusy(bot.UserId)) continue;
 
+                    if (!activeUsers.IsBotActiveMode(bot.UserId)) continue;
+
                     var fresh = await db.game_data.FirstOrDefaultAsync(g => g.UserId == bot.UserId);
                     if (fresh == null || fresh.MoneyPoints <= 0) continue;
 
@@ -59,8 +61,18 @@ public class BotInitiationService : BackgroundService
 
                         if (!candidates.Any()) continue;
 
-                        var random = new Random();
-                        var target = candidates[random.Next(candidates.Count)];
+                        UserData target;
+                        if (activeUsers.IsBotChaosMode(bot.UserId))
+                        {
+                            var random = new Random();
+                            target = candidates[random.Next(candidates.Count)];
+                        }
+                        else
+                        {
+                            var orderedIds = candidates.OrderBy(c => c.UserId).Select(c => c.UserId).ToList();
+                            var nextTargetId = activeUsers.GetNextOpponentInOrder(bot.UserId, orderedIds);
+                            target = candidates.First(c => c.UserId == nextTargetId);
+                        }
 
                         activeUsers.SetUserBusy(target.UserId);
 

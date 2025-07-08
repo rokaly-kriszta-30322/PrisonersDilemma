@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-
 public enum PlayerChoice
 {
     Coop,
@@ -8,13 +6,6 @@ public enum PlayerChoice
 
 public class MatrixHandler
 {
-
-    private readonly MyDbContext _myDbContext;
-
-    public MatrixHandler (MyDbContext myDbContext)
-    {
-        _myDbContext = myDbContext;
-    }
 
     public int Outcome(HandlerRequest interaction)
     {

@@ -1,18 +1,13 @@
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 [ApiController]
 [Route("[controller]")]
 public class PendingInteractionsController : Controller
 {
     private readonly MyDbContext _myDbContext;
-    private readonly GameLogic _gameLogic;
-    public PendingInteractionsController(MyDbContext myDbContext, GameLogic gameLogic)
+    public PendingInteractionsController(MyDbContext myDbContext)
     { 
         _myDbContext = myDbContext;
-        _gameLogic = gameLogic;
     }
 
     [HttpDelete("DeleteInteraction/{id}")]

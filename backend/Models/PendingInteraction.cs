@@ -12,4 +12,10 @@ public class PendingInteraction
 
     public PlayerChoice UserChoice { get; set; }
     public PlayerChoice? TargetChoice { get; set; }
+
+    [ForeignKey("UserId")]
+    public UserData? User { get; set; }
+
+    [ForeignKey("TargetId")]
+    public UserData? Target { get; set; }
 }

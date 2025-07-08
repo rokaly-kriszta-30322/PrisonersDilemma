@@ -3,7 +3,7 @@ import SignUp from './SignUp';
 import LogIn from './LogIn';
 import { Route, Routes } from 'react-router-dom';
 import React, { createContext, useState, useEffect } from 'react';
-import GamePage from './Game';
+import GamePage from './GamePage';
 import GameOverPage from './GameOver';
 
 function App() {

@@ -11,16 +11,14 @@ public class UserDataController : Controller
     private readonly IPasswordHasher _passwordHasher;
     private readonly AccessTokenGenerator _accessToken;
     private readonly ActiveUsers _activeUsers;
-    private readonly GameLogic _gameLogic;
     private readonly GameOver _gameOver;
 
-    public UserDataController(GameOver gameOver, GameLogic gameLogic, MyDbContext myDbContext, IPasswordHasher passwordHasher, AccessTokenGenerator accessToken, ActiveUsers activeUsers)
+    public UserDataController(GameOver gameOver, MyDbContext myDbContext, IPasswordHasher passwordHasher, AccessTokenGenerator accessToken, ActiveUsers activeUsers)
     {
         _myDbContext = myDbContext;
         _passwordHasher = passwordHasher;
         _accessToken = accessToken;
         _activeUsers = activeUsers;
-        _gameLogic = gameLogic;
         _gameOver = gameOver;
 
     }

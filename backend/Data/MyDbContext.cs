@@ -46,6 +46,16 @@ public class MyDbContext : DbContext
                 .HasConversion<string>();
             entity.Property(p => p.TargetChoice).HasColumnName("target_choice")
                 .HasConversion<string>();
+
+            entity.HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(p => p.Target)
+                .WithMany()
+                .HasForeignKey(p => p.TargetId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<GameData>(entity => 

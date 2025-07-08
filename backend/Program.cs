@@ -27,7 +27,6 @@ builder.Services.AddSingleton<ActiveUsers>();
 builder.Services.AddScoped<GameLogic>();
 builder.Services.AddScoped<GameOver>();
 builder.Services.AddScoped<MatrixHandler>();
-builder.Services.AddSignalR();
 builder.Services.AddSingleton<IBotStrategyManager, BotStrategyManager>();
 builder.Services.AddHostedService<BotInitiationService>();
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information);
@@ -73,8 +72,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors();
-
-app.MapHub<GameHub>("/gamehub");
 
 app.UseAuthentication();
 app.UseAuthorization();

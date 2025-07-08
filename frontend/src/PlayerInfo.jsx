@@ -1,4 +1,5 @@
 import React from 'react';
+import axios from './api/axios';
 
 const PlayerInfo = ({
   auth,
@@ -13,8 +14,12 @@ const PlayerInfo = ({
   handleActivate,
   handleDeactivate,
   handleToggleActive,
-  respondToInteraction
+  respondToInteraction,
+  botBehavior,
+  setBotBehavior,
+  handleToggleMode
 }) => {
+
   return (
     <div className="player-info">
         {auth.user?.gameData ? (
@@ -82,6 +87,29 @@ const PlayerInfo = ({
                   </button>
                 </div>
               </div>
+              
+              {selectedBotId && (
+                <div style={{ marginTop: "10px" }}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={botBehavior.chaosMode}
+                      onChange={() => handleToggleMode("chaosMode")}
+                    />
+                    Chaos Mode (unchecked = Order)
+                  </label>
+                  <br />
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={botBehavior.activeMode}
+                      onChange={() => handleToggleMode("activeMode")}
+                    />
+                    Active Mode (unchecked = Passive)
+                  </label>
+                </div>
+              )}
+
               <button onClick={handleToggleActive}>
                 {isActive ? "Spectate" : "Join"}
               </button>

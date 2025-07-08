@@ -3,6 +3,55 @@ public class ActiveUsers
     private readonly Dictionary<int, bool> _activeUsers = new();
     private readonly object _lock = new();
     private readonly HashSet<int> _busyUsers = new();
+    private readonly Dictionary<int, bool> _botInitiationMode = new();
+    private readonly Dictionary<int, bool> _botOpponentMode = new();
+    private readonly Dictionary<int, int> _botTargetIndex = new();
+
+
+    public int? GetNextOpponentInOrder(int botId, List<int> sortedCandidateIds)
+    {
+        lock (_lock)
+        {
+            if (!sortedCandidateIds.Any())
+                return null;
+
+            if (!_botTargetIndex.ContainsKey(botId))
+            {
+                _botTargetIndex[botId] = 0;
+            }
+            else
+            {
+                _botTargetIndex[botId] = (_botTargetIndex[botId] + 1) % sortedCandidateIds.Count;
+            }
+
+            return sortedCandidateIds[_botTargetIndex[botId]];
+        }
+    }
+
+    public void SetBotBehavior(int userId, bool activeMode, bool chaosMode)
+    {
+        lock (_lock)
+        {
+            _botInitiationMode[userId] = activeMode;
+            _botOpponentMode[userId] = chaosMode;
+        }
+    }
+
+    public bool IsBotActiveMode(int userId)
+    {
+        lock (_lock)
+        {
+            return _botInitiationMode.TryGetValue(userId, out bool active) && active;
+        }
+    }
+
+    public bool IsBotChaosMode(int userId)
+    {
+        lock (_lock)
+        {
+            return _botOpponentMode.TryGetValue(userId, out bool chaos) && chaos;
+        }
+    }
 
     public void AddUser(int userId, bool isBot)
     {
@@ -16,8 +65,14 @@ public class ActiveUsers
     {
         lock (_lock)
         {
+            bool isBot = _activeUsers.TryGetValue(userId, out var botFlag) && botFlag;
+
             _activeUsers.Remove(userId);
             _busyUsers.Remove(userId);
+            if (isBot)
+            {
+                _botTargetIndex.Remove(userId);
+            }
         }
     }
 
@@ -26,30 +81,6 @@ public class ActiveUsers
         lock (_lock)
         {
             return _activeUsers.Keys.ToList();
-        }
-    }
-
-    public List<int> GetActiveBotIds()
-    {
-        lock (_lock)
-        {
-            return _activeUsers.Where(kv => kv.Value).Select(kv => kv.Key).ToList();
-        }
-    }
-
-    public List<int> GetActivePlayerIds()
-    {
-        lock (_lock)
-        {
-            return _activeUsers.Where(kv => !kv.Value).Select(kv => kv.Key).ToList();
-        }
-    }
-
-    public bool IsUserBot(int userId)
-    {
-        lock (_lock)
-        {
-            return _activeUsers.TryGetValue(userId, out var isBot) && isBot;
         }
     }
 

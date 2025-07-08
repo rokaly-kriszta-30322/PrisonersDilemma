@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,13 +7,26 @@ public class BotStrategyController : Controller
 {
     private readonly MyDbContext _myDbContext;
     private readonly ActiveUsers _activeUsers;
-    private readonly GameLogic _gameLogic;
 
-    public BotStrategyController(GameLogic gameLogic, MyDbContext myDbContext, ActiveUsers activeUsers)
+    public BotStrategyController(MyDbContext myDbContext, ActiveUsers activeUsers)
     {
         _myDbContext = myDbContext;
         _activeUsers = activeUsers;
-        _gameLogic = gameLogic;
+    }
+
+    [HttpPost("SetBotBehavior")]
+    public IActionResult SetBotBehavior([FromBody] BotBehaviorDto dto)
+    {
+        _activeUsers.SetBotBehavior(dto.UserId, dto.ActiveMode, dto.ChaosMode);
+        return Ok("Bot behavior updated.");
+    }
+
+    [HttpGet("GetBotBehavior/{botId}")]
+    public IActionResult GetBotBehavior(int botId)
+    {
+        bool activeMode = _activeUsers.IsBotActiveMode(botId);
+        bool chaosMode = _activeUsers.IsBotChaosMode(botId);
+        return Ok(new { ActiveMode = activeMode, ChaosMode = chaosMode });
     }
 
     [HttpPost("AddBotStrategy")]
