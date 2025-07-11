@@ -2,6 +2,7 @@ public interface IBotStrategyManager
 {
     IBotStrategy GetOrCreateStrategy(int botUserId, string strategyName);
     void ResetBotMemory(int botUserId);
+    void RemoveBotStrategy(int botUserId);
 }
 
 public class BotStrategyManager : IBotStrategyManager

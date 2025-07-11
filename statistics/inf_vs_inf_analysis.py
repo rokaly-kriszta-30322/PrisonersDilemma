@@ -30,7 +30,7 @@ def calculate_total_earnings(folder_path):
             pid2, choice2, points2 = row['user2_id'], row['choice_type2'], row['m_points2']
 
             if pid1 == 2051 and pid2 == 2051:
-                continue  # Skip placeholder
+                continue
 
             if pid1 != 2051:
                 user_sessions.setdefault(pid1, {}).setdefault(filename, []).append((choice1, points1))
@@ -68,11 +68,12 @@ def plot_earnings(result_df):
     bars = plt.bar(result_df['Strategy'], result_df['TotalMoneyEarned'])
     for bar in bars:
         height = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width()/2, height + 5, f'{int(height)}', ha='center', va='bottom', fontsize=9)
-    plt.xlabel("Strategy")
-    plt.ylabel("Total Money Earned")
-    plt.title("Total Money Earned per Strategy (Buy Disabled)")
-    plt.xticks(rotation=45)
+        plt.text(bar.get_x() + bar.get_width()/2, height + 5, f'{int(height)}', ha='center', va='bottom', fontsize=12)
+    plt.xlabel("Strategy", fontsize=12)
+    plt.ylabel("Total Money Earned", fontsize=12)
+    plt.title("Total Money Earned per Strategy (Buy Disabled)", fontsize=14)
+    plt.xticks(rotation=45, fontsize=12)
+    plt.yticks(fontsize=12)
     plt.tight_layout()
     plt.show()
 
@@ -126,11 +127,12 @@ if __name__ == "__main__":
         })
 
     df_choices = pd.DataFrame(choice_stats).set_index('Strategy')
-    df_choices = df_choices[df_choices['Total'] > 0]  # Remove empty rows
+    df_choices = df_choices[df_choices['Total'] > 0]
 
     if df_choices.empty:
-        print("⚠️ No valid choice data found to plot.")
+        print("No valid choice data found to plot.")
     else:
+        df_choices = df_choices.sort_values(by='Deflect', ascending=True)
         df_props = df_choices[['Coop', 'Deflect', 'Buy']].div(df_choices['Total'], axis=0).fillna(0)
 
         print("\n=== Choice Counts by Strategy (Buy Disabled) ===")
@@ -141,7 +143,6 @@ if __name__ == "__main__":
 
         ax = df_props.plot(kind='bar', stacked=True, figsize=(10, 6))
 
-        # Add raw counts from df_choices onto the bars
         for idx, strategy in enumerate(df_choices.index):
             y_offset = 0
             for choice in ['Coop', 'Deflect', 'Buy']:
@@ -149,35 +150,35 @@ if __name__ == "__main__":
                 proportion = df_props.loc[strategy, choice]
                 if proportion > 0:
                     ax.text(
-                        idx,                     # x-position (bar index)
-                        y_offset + proportion / 2,  # y-position (middle of the segment)
-                        str(count),             # label
-                        ha='center', va='center', fontsize=8
+                        idx,
+                        y_offset + proportion / 2,
+                        str(count),
+                        ha='center', va='center', fontsize=12
                     )
                     y_offset += proportion
-        plt.title("Choice Distribution by Strategy (Buy Disabled)")
-        plt.xlabel("Strategy")
-        plt.ylabel("Proportion of Moves")
-        plt.xticks(rotation=45)
+        plt.title("Choice Distribution by Strategy (Buy Disabled)", fontsize=14)
+        plt.xlabel("Strategy", fontsize=12)
+        plt.ylabel("Proportion of Moves", fontsize=12)
+        plt.xticks(rotation=45, fontsize=12)
+        plt.yticks(fontsize=12)
         plt.legend(title="Choice")
         plt.tight_layout()
         plt.show()
 
-# ✅ Filter out strategies with non-positive earnings
 safe_result = result[result['TotalMoneyEarned'] > 0]
 
-# Check if there's anything to plot
 if safe_result.empty:
-    print("⚠️ No strategies with positive earnings to plot.")
+    print("No strategies with positive earnings to plot.")
 else:
     plt.figure(figsize=(8, 8))
     plt.pie(
         safe_result['TotalMoneyEarned'],
         labels=safe_result['Strategy'],
-        autopct='%1.1f%%',
-        startangle=140
+        autopct=lambda pct: f'{pct:.1f}%',
+        startangle=140,
+        textprops={'fontsize': 12}
     )
-    plt.title("Market Share by Total Money Earned (Buy Disabled)")
+    plt.title("Market Share by Total Money Earned (Buy Disabled)", fontsize=14)
     plt.axis('equal')
     plt.tight_layout()
     plt.show()

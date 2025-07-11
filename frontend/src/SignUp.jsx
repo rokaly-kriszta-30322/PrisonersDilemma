@@ -10,8 +10,6 @@ const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,24}$/;
 
 const REGISTER_URL = 'http://localhost:5078/UserData/signup';
 
-import React from 'react';
-
 const SignUp = () => {
 
     const userRef = useRef();

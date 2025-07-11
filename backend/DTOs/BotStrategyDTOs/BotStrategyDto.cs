@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 public class BotStrategyDto
 {
     public int UserId { get; set; }

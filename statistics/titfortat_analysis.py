@@ -77,7 +77,6 @@ def process_folder(folder_path, folder_tag):
         if session_df.empty:
             continue
 
-        # Identify who we are tracking
         if folder_tag == "6vs0":
             pids = set(session_df[['pid1', 'pid2']].values.flatten())
             tom_id = 2051 if 2051 in pids and 2039 in pids else 2039
@@ -106,29 +105,27 @@ def process_folder(folder_path, folder_tag):
 
     return strategy_curves
 
-# Run and plot
 for tag, folder in folder_paths.items():
     data = process_folder(folder, tag)
     plt.figure(figsize=(12, 6))
     for strat, curve in data.items():
         plt.plot(curve, label=strat, linewidth=2)
-    plt.title(f"Tit-for-Tat Cumulative Gains vs Other Strategies ({tag})")
-    plt.xlabel("Round")
-    plt.ylabel("Cumulative Gain")
+    plt.title(f"Tit-for-Tat Cumulative Gains vs Other Strategies ({tag})", fontsize=14)
+    plt.xlabel("Round", fontsize=12)
+    plt.ylabel("Cumulative Gain", fontsize=12)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
     plt.legend()
     plt.grid(True)
     from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset
 
-    # Add inset axes (inside the loop where each plot is drawn)
     ax = plt.gca()
     axins = inset_axes(ax, width="70%", height="80%", loc="upper left",
                     bbox_to_anchor=(0.15, 0.45, 0.5, 0.5), bbox_transform=ax.transAxes)
 
-    # Plot same curves in the inset
     for strat, curve in data.items():
         axins.plot(curve, linewidth=1)
 
-    # Zoom region - adjust to your case
     x1, x2 = -0.2, 38
     y1, y2 = -107, 70
     axins.set_xlim(x1, x2)
@@ -136,7 +133,6 @@ for tag, folder in folder_paths.items():
     axins.set_xticks([])
     axins.set_yticks([])
 
-    # Optional: Draw red lines linking inset and zoom area
     mark_inset(ax, axins, loc1=2, loc2=4, fc="none", ec="black", lw=1)
     plt.tight_layout()
     plt.show()

@@ -1,7 +1,6 @@
 import { useRef, useState, useEffect, useContext } from "react";
 import AuthContext from "./context/AuthProvider";
 import axios from "./api/axios";
-import React from 'react';
 import { Link } from 'react-router-dom';
 
 const LOGIN_URL = 'http://localhost:5078/UserData/login';

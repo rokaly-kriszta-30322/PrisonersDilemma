@@ -44,6 +44,7 @@ public class GameOver
             if (strategyRecord != null)
             {
                 _botStrategyManager.ResetBotMemory(userId);
+                _botStrategyManager.RemoveBotStrategy(userId);
             }
         }
 

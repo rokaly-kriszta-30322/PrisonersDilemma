@@ -43,11 +43,10 @@ def plot_adjusted_cumulative_gains(folder_path, tom_id=2039):
             pid2, c2, p2 = row['user2_id'], row['choice_type2'], row['m_points2']
 
             if pid1 == 2051 and pid2 == 2051:
-                # Self-play dummy; handle buy only once
                 money = p1 - 500 if c1 == 'Buy' else p1
                 rows.append({
                     'pid1': pid1, 'choice1': c1, 'money1': money,
-                    'pid2': pid2, 'choice2': c2, 'money2': money  # duplicate same money
+                    'pid2': pid2, 'choice2': c2, 'money2': money
                 })
                 continue
 
@@ -58,7 +57,7 @@ def plot_adjusted_cumulative_gains(folder_path, tom_id=2039):
             money1 = p1 - 500 if c1 == 'Buy' else p1
             money2 = p2 - 500 if c2 == 'Buy' else p2
             if is_duplicate_buy:
-                money1 = p1 - 500  # subtract from only one side
+                money1 = p1 - 500
 
             rows.append({
                 'pid1': pid1, 'choice1': c1, 'money1': money1,
@@ -93,7 +92,6 @@ def plot_adjusted_cumulative_gains(folder_path, tom_id=2039):
 
             return [0] + cum
 
-        # Determine who Tom is and who opponent is
         if session_df['pid1'].iloc[0] == tom_id:
             opp_id = session_df['pid2'].iloc[0]
             tom_cum = extract_cumulative(session_df, tom_id)
@@ -103,14 +101,13 @@ def plot_adjusted_cumulative_gains(folder_path, tom_id=2039):
             tom_cum = extract_cumulative(session_df, tom_id)
             opp_cum = extract_cumulative(session_df, opp_id)
         else:
-            continue  # Skip file if Tom not present
+            continue
 
-        # Align both lines
         max_len = max(len(tom_cum), len(opp_cum))
         tom_cum += [tom_cum[-1]] * (max_len - len(tom_cum))
         opp_cum += [opp_cum[-1]] * (max_len - len(opp_cum))
 
-        filename_base = os.path.splitext(filename)[0]  # Strip ".csv"
+        filename_base = os.path.splitext(filename)[0]
         bot0_tag, bot6_tag = filename_base.split("Vs")
 
         def resolve_label(pid, side_tag):
@@ -140,7 +137,7 @@ def plot_adjusted_cumulative_gains(folder_path, tom_id=2039):
         #debug_cumulative_gains(session_df, opp_id, label="Opponent")
 
 def debug_cumulative_gains(df, user_id, label="User"):
-    print(f"\n🔍 Step-by-step gains for '{label}' (User ID: {user_id})")
+    print(f"\n Step-by-step gains for '{label}' (User ID: {user_id})")
     
     prev = 100
     total = 0
@@ -166,8 +163,7 @@ def debug_cumulative_gains(df, user_id, label="User"):
         print(f"Row {i}: Choice={choice}, Money={money}, Prev={prev}, Diff={diff}, Total={total}")
         prev = money
 
-    print(f"\n✅ Final total gain for '{label}': {total}")
+    print(f"\n Final total gain for '{label}': {total}")
 
-# Example usage
 folder = r"D:\K\Uni\Anul_IV\proj\statistics\data\TomVs\Tom"
 plot_adjusted_cumulative_gains(folder)

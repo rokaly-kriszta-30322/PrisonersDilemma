@@ -1,22 +1,14 @@
-import React from 'react';
-import axios from './api/axios';
-
 const PlayerInfo = ({
   auth,
   bots,
   isActive,
-  setIsActive,
-  pendingInteraction,
-  setPendingInteraction,
   selectedBotId,
   setSelectedBotId,
   onBuy,
   handleActivate,
   handleDeactivate,
   handleToggleActive,
-  respondToInteraction,
   botBehavior,
-  setBotBehavior,
   handleToggleMode
 }) => {
 

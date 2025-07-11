@@ -137,6 +137,25 @@ public class UserDataController : Controller
         return Ok("User state reset to 0.");
     }
 
+    [HttpPost("resetAllTurnsNrs")]
+    public async Task<IActionResult> ResetAllUsersTurnsNrsAsync()
+    {
+        var users = await _myDbContext.user_data.ToListAsync();
+
+        if (users == null || !users.Any())
+            return NotFound("No users found.");
+
+        foreach (var user in users)
+        {
+            user.MaxTurns = 0;
+            user.GameNr = 0;
+        }
+
+        await _myDbContext.SaveChangesAsync();
+
+        return Ok("All users' state reset to 0.");
+    }
+
     [HttpPost("signup")]
     public async Task<IActionResult> AddUser([FromBody] UserRequest userRequest)
     {

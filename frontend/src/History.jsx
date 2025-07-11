@@ -1,5 +1,3 @@
-import React from 'react';
-
 const History = ({ history }) => {
   const reversed = [...history].reverse().slice(0, 10);
 

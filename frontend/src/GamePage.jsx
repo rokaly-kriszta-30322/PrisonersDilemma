@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import axios from "./api/axios";
 import AuthContext from "./context/AuthProvider";
 import { useNavigate } from "react-router-dom";
@@ -12,8 +12,6 @@ const GamePage = () => {
   const { auth, setAuth } = useContext(AuthContext);
 
   const [activePlayers, setActivePlayers] = useState([]);
-  const [selectedPlayer, setSelectedPlayer] = useState('');
-  const [choice, setChoice] = useState('');
   const [pendingInteraction, setPendingInteraction] = useState(null);
   const [bots, setBots] = useState([]);
   const [selectedBotId, setSelectedBotId] = useState(null);
@@ -292,25 +290,19 @@ const GamePage = () => {
           auth={auth}
           bots={bots}
           isActive={isActive}
-          setIsActive={setIsActive}
-          pendingInteraction={pendingInteraction}
-          setPendingInteraction={setPendingInteraction}
           selectedBotId={selectedBotId}
           setSelectedBotId={setSelectedBotId}
           onBuy={onBuy}
           handleActivate={handleActivate}
           handleDeactivate={handleDeactivate}
           handleToggleActive={handleToggleActive}
-          respondToInteraction={respondToInteraction}
           botBehavior={botBehavior}
-          setBotBehavior={setBotBehavior}
           handleToggleMode={handleToggleMode}
         />
         <PlayerList
           filteredPlayers={filteredPlayers}
           auth={auth}
           pendingInteraction={pendingInteraction}
-          setPendingInteraction={setPendingInteraction}
           onSendChoice={onSendChoice}
           respondToInteraction={respondToInteraction}
         />

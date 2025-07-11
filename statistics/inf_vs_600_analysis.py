@@ -122,9 +122,9 @@ sns.set(style="whitegrid")
 
 plt.figure(figsize=(10, 5))
 ax = sns.barplot(x=earn0.index, y=earn0.values)
-plt.title("Total Earnings by Strategy (Bot0)")
-plt.xlabel("Strategy")
-plt.ylabel("Total Money")
+plt.title("Total Earnings by Strategy (Bot0)", fontsize=14)
+plt.xlabel("Strategy", fontsize=12)
+plt.ylabel("Total Money", fontsize=12)
 plt.xticks(rotation=45)
 for bar in ax.patches:
     height = bar.get_height()
@@ -134,16 +134,17 @@ for bar in ax.patches:
         f'{int(height)}',
         ha='center',
         va='bottom',
-        fontsize=9
+        fontsize=12
     )
+plt.yticks(fontsize=12)
 plt.tight_layout()
 plt.show()
 
 plt.figure(figsize=(10, 5))
 ax = sns.barplot(x=earn6.index, y=earn6.values)
-plt.title("Total Earnings by Strategy (Bot6)")
-plt.xlabel("Strategy")
-plt.ylabel("Total Money")
+plt.title("Total Earnings by Strategy (Bot6)", fontsize=14)
+plt.xlabel("Strategy", fontsize=12)
+plt.ylabel("Total Money", fontsize=12)
 plt.xticks(rotation=45)
 for bar in ax.patches:
     height = bar.get_height()
@@ -153,53 +154,62 @@ for bar in ax.patches:
         f'{int(height)}',
         ha='center',
         va='bottom',
-        fontsize=9
+        fontsize=12
     )
+plt.yticks(fontsize=12)
 plt.tight_layout()
 plt.show()
 
+deflect_order0 = choice0['Deflect'].sort_values(ascending=True).index
+choice0 = choice0.loc[deflect_order0]
+choice0_norm = choice0.div(choice0.sum(axis=1), axis=0)
+
 fig, ax = plt.subplots(figsize=(10, 6))
-ordered_cols_bot0 = ['Coop', 'Deflect']
+ordered_cols_bot0 = ['Coop', 'Deflect', 'Buy']
 choice0_norm = choice0_norm.reindex(columns=ordered_cols_bot0, fill_value=0)
 bars = choice0_norm.plot(kind='bar', stacked=True, ax=ax)
 
-# Add raw counts as annotations
 for idx, strategy in enumerate(choice0_norm.index):
     y_offset = 0
     for col in ordered_cols_bot0:
         height = choice0_norm.loc[strategy, col]
         raw_value = choice0.loc[strategy, col] if col in choice0.columns else 0
         if height > 0:
-            ax.text(idx, y_offset + height / 2, str(raw_value), ha='center', va='center', fontsize=9)
+            ax.text(idx, y_offset + height / 2, str(raw_value), ha='center', va='center', fontsize=12)
             y_offset += height
 
-ax.set_title("Choice Distribution by Strategy (Bot0)")
-ax.set_xlabel("Strategy")
-ax.set_ylabel("Proportion")
-plt.xticks(rotation=45)
+ax.set_title("Choice Distribution by Strategy (Bot0)", fontsize=14)
+ax.set_xlabel("Strategy", fontsize=12)
+ax.set_ylabel("Proportion", fontsize=12)
+plt.xticks(rotation=45, fontsize=12)
+plt.yticks(fontsize=12)
 plt.legend(title="Choice")
 plt.tight_layout()
 plt.show()
+
+deflect_order6 = choice6['Deflect'].sort_values(ascending=True).index
+choice6 = choice6.loc[deflect_order6]
+choice6_norm = choice6.div(choice6.sum(axis=1), axis=0)
 
 fig, ax = plt.subplots(figsize=(10, 6))
 ordered_cols_bot6 = ['Coop', 'Deflect', 'Buy']
 choice6_norm = choice6_norm.reindex(columns=ordered_cols_bot6, fill_value=0)
 bars = choice6_norm.plot(kind='bar', stacked=True, ax=ax)
 
-# Add raw counts as annotations
 for idx, strategy in enumerate(choice6_norm.index):
     y_offset = 0
     for col in ordered_cols_bot6:
         height = choice6_norm.loc[strategy, col]
         raw_value = choice6.loc[strategy, col] if col in choice6.columns else 0
         if height > 0:
-            ax.text(idx, y_offset + height / 2, str(raw_value), ha='center', va='center', fontsize=9)
+            ax.text(idx, y_offset + height / 2, str(raw_value), ha='center', va='center', fontsize=12)
             y_offset += height
 
-ax.set_title("Choice Distribution by Strategy (Bot6)")
-ax.set_xlabel("Strategy")
-ax.set_ylabel("Proportion")
-plt.xticks(rotation=45)
+ax.set_title("Choice Distribution by Strategy (Bot6)", fontsize=14)
+ax.set_xlabel("Strategy", fontsize=12)
+ax.set_ylabel("Proportion", fontsize=12)
+plt.xticks(rotation=45, fontsize=12)
+plt.yticks(fontsize=12)
 plt.legend(title="Choice")
 plt.tight_layout()
 plt.show()
@@ -245,26 +255,22 @@ def debug_strategy(df, strategy_name, role_label):
 #debug_strategy(df_bot0, 'alwaysdefect', 'Bot0')
 #debug_strategy(df_bot6, 'alwaysdefect', 'Bot6')
 
-# Rename indices to indicate role
 earn0_labeled = earn0.rename(lambda s: f"{s} (Bot0)")
 earn6_labeled = earn6.rename(lambda s: f"{s} (Bot6)")
 
-# Combine into a single Series
 split_earnings = pd.concat([earn0_labeled, earn6_labeled])
 
-# Filter out zero or negative earnings to avoid pie chart errors
 split_earnings = split_earnings[split_earnings > 0]
 
-# Plot the split pie chart
 plt.figure(figsize=(10, 8))
 plt.pie(
     split_earnings,
     labels=split_earnings.index,
-    autopct='%1.1f%%',
-    startangle=140
+    autopct=lambda pct: f'{pct:.1f}%',
+    startangle=140,
+    textprops={'fontsize': 12}
 )
-plt.title("Market Share by Strategy and Role (Bot0 vs Bot6)")
+plt.title("Market Share by Strategy and Role (Bot0 vs Bot6)", fontsize=14, pad=30)
 plt.axis('equal')
 plt.tight_layout()
 plt.show()
-

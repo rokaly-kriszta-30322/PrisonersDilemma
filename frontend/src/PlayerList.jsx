@@ -1,10 +1,7 @@
-import React from 'react';
-
 const PlayerList = ({
     filteredPlayers,
     auth,
     pendingInteraction,
-    setPendingInteraction,
     onSendChoice,
     respondToInteraction
 }) => {
