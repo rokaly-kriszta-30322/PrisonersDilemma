@@ -42,7 +42,6 @@ public class ProberStrat : IBotStrategy, IResettableBotStrategy
 
     public void ResetAllOpponentMemory()
     {
-        Console.WriteLine("clearing in prober");
         _opponentMemory.Clear();
     }
 

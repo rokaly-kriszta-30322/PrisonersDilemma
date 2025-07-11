@@ -26,7 +26,6 @@ public class TwoTitsForTatStrat : IBotStrategy, IResettableBotStrategy
 
     public void ResetAllOpponentMemory()
     {
-        Console.WriteLine("clearing in sample");
         _opponentDeflectedOnce.Clear();
     }
 }

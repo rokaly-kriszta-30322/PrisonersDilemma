@@ -16,10 +16,10 @@ strat_name_map = {
 }
 
 folder_paths = {
-    "N0vs0": r"D:\K\Uni\Anul_IV\proj\statistics\data\N_plays\self\N0vs0",
-    "N0vs6": r"D:\K\Uni\Anul_IV\proj\statistics\data\N_plays\self\N0vs6",
-    "N6vs0": r"D:\K\Uni\Anul_IV\proj\statistics\data\N_plays\self\N6vs0",
-    "N6vs6": r"D:\K\Uni\Anul_IV\proj\statistics\data\N_plays\self\N6vs6",
+    "N0vs0": r"D:\K\Uni\Anul_IV\data\N_plays\self\N0vs0",
+    "N0vs6": r"D:\K\Uni\Anul_IV\data\N_plays\self\N0vs6",
+    "N6vs0": r"D:\K\Uni\Anul_IV\data\N_plays\self\N6vs0",
+    "N6vs6": r"D:\K\Uni\Anul_IV\data\N_plays\self\N6vs6",
 }
 
 def extract_user_cumulative(df, bot_id):

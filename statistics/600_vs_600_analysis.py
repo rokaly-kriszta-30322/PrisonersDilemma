@@ -127,7 +127,7 @@ def debug_user_earnings(user_sessions, user_id, strat_name=None):
     print(f"\n Final total earnings for '{label}': {total}")
 
 if __name__ == "__main__":
-    folder = r"D:\K\Uni\Anul_IV\proj\statistics\data\600_vs_600"
+    folder = r"D:\K\Uni\Anul_IV\data\600_vs_600"
     result, user_sessions, user_choices = calculate_total_earnings(folder)
     print("\n=== Total Earned Money (Buy Enabled) ===")
     print(result)

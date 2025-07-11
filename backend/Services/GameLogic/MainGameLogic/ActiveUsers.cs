@@ -15,16 +15,16 @@ public class ActiveUsers
             if (!sortedCandidateIds.Any())
                 return null;
 
-            if (!_botTargetIndex.ContainsKey(botId))
-            {
-                _botTargetIndex[botId] = 0;
-            }
-            else
-            {
-                _botTargetIndex[botId] = (_botTargetIndex[botId] + 1) % sortedCandidateIds.Count;
-            }
+            int lastOpponent = _botTargetIndex.ContainsKey(botId) ? _botTargetIndex[botId] : -1;
 
-            return sortedCandidateIds[_botTargetIndex[botId]];
+            var next = sortedCandidateIds.FirstOrDefault(id => id > lastOpponent);
+
+            if (next == 0)
+                next = sortedCandidateIds.First();
+
+            _botTargetIndex[botId] = next;
+
+            return next;
         }
     }
 

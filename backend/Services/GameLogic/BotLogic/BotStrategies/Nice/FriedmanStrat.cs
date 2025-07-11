@@ -19,7 +19,6 @@ public class FriedmanStrat : IBotStrategy, IResettableBotStrategy
 
     public void ResetAllOpponentMemory()
     {
-        Console.WriteLine("clearing in friedman");
         _defectedOpponents.Clear();
     }
 }

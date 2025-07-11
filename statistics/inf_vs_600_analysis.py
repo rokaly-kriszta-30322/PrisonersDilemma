@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-folder_path = r"D:\K\Uni\Anul_IV\proj\statistics\data\inf_vs_600"
+folder_path = r"D:\K\Uni\Anul_IV\data\inf_vs_600"
 
 bot_name_map = {
     2039: "Tom",
