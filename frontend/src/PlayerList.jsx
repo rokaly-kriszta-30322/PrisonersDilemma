@@ -12,7 +12,7 @@ const PlayerList = ({
             <div className="popup">
               <h3>New Deal from {pendingInteraction.fromUser}</h3>
               <button onClick={() => respondToInteraction("Coop")}>Coop</button>
-              <button onClick={() => respondToInteraction("Deflect")} style={{ marginLeft: "10px" }}>Deflect</button>
+              <button onClick={() => respondToInteraction("Deflect")} style={{ marginLeft: "10px" }}>Defect</button>
             </div>
           </div>
         )}
@@ -51,7 +51,7 @@ const PlayerList = ({
                     }
                     style={{ marginLeft: "10px" }}
                 >
-                    Deflect
+                    Defect
                 </button>
                 </td>
             </tr>

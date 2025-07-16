@@ -16,6 +16,7 @@ public class GameOver
     public async Task ResetToStart(int userId)
     {
         var user = await _myDbContext.user_data.FirstOrDefaultAsync(u => u.UserId == userId);
+        await RemoveInteractionsForUserAsync(userId);
 
         var currentGameNr = user!.GameNr;
         var turnCount = await _myDbContext.game_session
@@ -61,6 +62,19 @@ public class GameOver
         if (user.Role == "bot")
         {
             await ResetToStart(userId);
+        }
+    }
+
+    public async Task RemoveInteractionsForUserAsync(int userId)
+    {
+        var interactions = await _myDbContext.pending_interactions
+            .Where(p => p.UserId == userId || p.TargetId == userId)
+            .ToListAsync();
+
+        if (interactions.Any())
+        {
+            _myDbContext.pending_interactions.RemoveRange(interactions);
+            await _myDbContext.SaveChangesAsync();
         }
     }
 

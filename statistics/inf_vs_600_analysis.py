@@ -125,7 +125,7 @@ ax = sns.barplot(x=earn0.index, y=earn0.values)
 plt.title("Total Earnings by Strategy (Bot0)", fontsize=14)
 plt.xlabel("Strategy", fontsize=12)
 plt.ylabel("Total Money", fontsize=12)
-plt.xticks(rotation=45)
+plt.xticks(rotation=45, fontsize=12)
 for bar in ax.patches:
     height = bar.get_height()
     ax.text(
@@ -145,7 +145,7 @@ ax = sns.barplot(x=earn6.index, y=earn6.values)
 plt.title("Total Earnings by Strategy (Bot6)", fontsize=14)
 plt.xlabel("Strategy", fontsize=12)
 plt.ylabel("Total Money", fontsize=12)
-plt.xticks(rotation=45)
+plt.xticks(rotation=45, fontsize=12)
 for bar in ax.patches:
     height = bar.get_height()
     ax.text(
