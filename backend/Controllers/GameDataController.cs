@@ -1,9 +1,11 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class GameDataController : Controller
 {
     private readonly MyDbContext _myDbContext;

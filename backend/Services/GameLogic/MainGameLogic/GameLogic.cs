@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
 
 public class GameLogic
 {
@@ -6,13 +7,15 @@ public class GameLogic
     private readonly MatrixHandler _matrixHandler;
     private readonly IBotStrategyManager _botStrategyManager;
     private readonly GameOver _gameOver;
+    private readonly IHubContext<GameHub> _hub;
 
-    public GameLogic(IBotStrategyManager botStrategyManager, GameOver gameOver, MatrixHandler matrixHandler, MyDbContext myDbContext)
+    public GameLogic(IHubContext<GameHub> hub, IBotStrategyManager botStrategyManager, GameOver gameOver, MatrixHandler matrixHandler, MyDbContext myDbContext)
     {
         _myDbContext = myDbContext;
         _matrixHandler = matrixHandler;
         _botStrategyManager = botStrategyManager;
         _gameOver = gameOver;
+        _hub = hub;
     }
 
     public async Task GetUserIdAsync(GameSessionRequest request)
@@ -73,6 +76,9 @@ public class GameLogic
 
         _myDbContext.game_session.Add(gameSession);
         await _myDbContext.SaveChangesAsync();
+
+        await _hub.Clients.User(playerId!.Value.ToString()).SendAsync("GameStateUpdated");
+        await _hub.Clients.User(playerId.Value.ToString()).SendAsync("HistoryUpdated");
     }
 
     public async Task HandleTradeInitiationAsync(int playerId, int targetId, PlayerChoice playerChoice)
@@ -90,6 +96,13 @@ public class GameLogic
 
         var targetUser = await _myDbContext.user_data.FirstOrDefaultAsync(u => u.UserId == targetId);
         var playerUser = await _myDbContext.user_data.FirstOrDefaultAsync(u => u.UserId == playerId);
+
+        await _hub.Clients.User(targetId.ToString()).SendAsync("PendingInteractionReceived", new
+        {
+            PendingId = pending.PendingId,
+            FromUser = playerUser!.UserName,
+            UserChoice = playerChoice.ToString()
+        });
 
         if (targetUser?.Role == "bot")
         {
@@ -188,6 +201,12 @@ public class GameLogic
             var bot = await _myDbContext.bot_strat.FirstOrDefaultAsync(b => b.UserId == targetUser.UserId);
             if (bot!.MoneyLimit < targetData.MoneyPoints && bot.MoneyLimit != 0) await HandleBuyAsync(targetUser.UserId);
         }
+
+        var u1 = pending.UserId.ToString();
+        var u2 = pending.TargetId.ToString();
+
+        await _hub.Clients.Users(u1, u2).SendAsync("GameStateUpdated");
+        await _hub.Clients.Users(u1, u2).SendAsync("HistoryUpdated");
 
         _myDbContext.pending_interactions.Remove(pending);
         await _myDbContext.SaveChangesAsync();

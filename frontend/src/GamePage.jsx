@@ -1,4 +1,5 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useRef } from "react";
+import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 import axios from "./api/axios";
 import AuthContext from "./context/AuthProvider";
 import { useNavigate } from "react-router-dom";
@@ -6,6 +7,8 @@ import Nav from './Nav';
 import PlayerInfo from './PlayerInfo';
 import PlayerList from './PlayerList';
 import History from './History';
+
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5078";
 
 const GamePage = () => {
 
@@ -22,6 +25,7 @@ const GamePage = () => {
     chaosMode: true,
     activeMode: true
   });
+  const connectionRef = useRef(null);
 
   useEffect(() => {
     if (!selectedBotId) return;
@@ -31,8 +35,8 @@ const GamePage = () => {
           headers: { Authorization: `Bearer ${auth.token}` }
         });
         setBotBehavior({
-          chaosMode: response.data.chaosMode,
-          activeMode: response.data.activeMode
+          chaosMode: response.data.chaosMode ?? response.data.ChaosMode,
+          activeMode: response.data.activeMode ?? response.data.ActiveMode
         });
       } catch (err) {
         console.error("Failed to fetch bot behavior:", err);
@@ -40,6 +44,68 @@ const GamePage = () => {
     };
     fetchBehavior();
   }, [selectedBotId]);
+
+  useEffect(() => {
+    if (!auth?.token) return;
+    fetchActivePlayers();
+    fetchHistory();
+    fetchGameData();
+  }, [auth?.token]);
+
+  useEffect(() => {
+    if (!auth?.token) return;
+
+    const connection = new HubConnectionBuilder()
+      .withUrl(`${API_BASE}/gamehub`, { 
+        accessTokenFactory: () => auth.token,
+        withCredentials: false
+      })
+      .withAutomaticReconnect()
+      .configureLogging(LogLevel.Information)
+      .build();
+
+    const onPendingInteractionReceived = (data) => {
+      setPendingInteraction({
+        pendingId: data.PendingId ?? data.pendingId ?? data.pendingID,
+        fromUser: data.FromUser ?? data.fromUser,
+        userChoice: data.UserChoice ?? data.userChoice,
+      });
+    };
+
+    const onGameStateUpdated = () => fetchGameData();
+    const onHistoryUpdated = () => fetchHistory();
+    const onActiveUsersChanged = () => fetchActivePlayers();
+    const onGameOver = () => navigate("/gameover");
+
+    connection.on("PendingInteractionReceived", onPendingInteractionReceived);
+    connection.on("GameStateUpdated", onGameStateUpdated);
+    connection.on("HistoryUpdated", onHistoryUpdated);
+    connection.on("ActiveUsersChanged", onActiveUsersChanged);
+    connection.on("GameOver", onGameOver);
+
+    connection
+      .start()
+      .then(() => {
+        fetchActivePlayers();
+        fetchHistory();
+        fetchGameData();
+      })
+      .catch(err => console.error("SignalR connection failed:", err));
+
+    connectionRef.current = connection;
+
+    return () => {
+      try {
+        connection.off("PendingInteractionReceived");
+        connection.off("GameStateUpdated");
+        connection.off("HistoryUpdated");
+        connection.off("ActiveUsersChanged");
+        connection.off("GameOver");
+      } catch {}
+      connection.stop().catch(() => {});
+      connectionRef.current = null;
+    };
+  }, [auth?.token]);
 
   useEffect(() => {
     if (auth?.user?.role !== 'admin') return;
@@ -59,104 +125,51 @@ const GamePage = () => {
     fetchBots();
   }, [auth.token]);
 
-  useEffect(() => {
-    if (!auth?.token) return;
-    const fetchActivePlayers = async () => {
-      try {
-        const response = await axios.get('/UserData/users/active', {
-          headers: {
-            Authorization: `Bearer ${auth.token}`
-          }
-        });
-        setActivePlayers(response.data);
-      } catch (err) {
-        console.error("Failed to fetch players:", err);
+  const fetchActivePlayers = async () => {
+    try {
+      const response = await axios.get('/UserData/users/active', {
+        headers: { Authorization: `Bearer ${auth.token}` }
+      });
+      setActivePlayers(response.data);
+    } catch (err) {
+      console.error("Failed to fetch players:", err);
+    }
+  };
+
+  const fetchHistory = async () => {
+    try {
+      const response = await axios.get('/GameSession/history', {
+        headers: { Authorization: `Bearer ${auth.token}` }
+      });
+      setHistory(response.data);
+    } catch (error) {
+      console.error('Error fetching interaction history:', error);
+    }
+  };
+
+  const fetchGameData = async () => {
+    try {
+      const response = await axios.get('/GameData/data', {
+        headers: { Authorization: `Bearer ${auth.token}` }
+      });
+
+      const money = response.data.moneyPoints;
+      if (money <= 0) {
+        navigate('/gameover');
+        return;
       }
-    };
 
-    fetchActivePlayers();
-
-    const interval = setInterval(fetchActivePlayers, 5000);
-    return () => clearInterval(interval);
-
-  }, [auth.token]);
-
-  useEffect(() => {
-    if (!auth?.token) return;
-    const pollPending = async () => {
-      try {
-        const response = await axios.get('/GameSession/game/pending', {
-          headers: { Authorization: `Bearer ${auth.token}` }
-        });
-        if (response.status === 200) {
-          setPendingInteraction(response.data);
-        } else {
-          setPendingInteraction(null);
+      setAuth(prev => ({
+        ...(prev || {}),
+        user: {
+          ...(prev?.user || {}),
+          gameData: response.data
         }
-      } catch (err) {
-        setPendingInteraction(null);
-      }
-    };
-
-    const fetchHistory = async () => {
-      try {
-        const response = await axios.get('/GameSession/history', {
-          headers: {
-            Authorization: `Bearer ${auth.token}`
-          }
-        });
-        setHistory(response.data);
-      } catch (error) {
-        console.error('Error fetching interaction history:', error);
-      }
-    };
-
-    const pollGameData = async () => {
-      try {
-        const response = await axios.get('/GameData/data', {
-          headers: { Authorization: `Bearer ${auth.token}` }
-        });
-
-        const money = response.data.moneyPoints;
-
-        if (money <= 0) {
-          try {
-            await axios.post('/GameData/reset', {}, {
-              headers: {
-                Authorization: `Bearer ${auth.token}`
-              }
-            });
-            navigate('/gameover');
-          } catch (err) {
-            console.warn("Reset backend call failed.");
-          }
-          return;
-        }
-
-        setAuth(prev => ({
-          ...prev,
-          user: {
-            ...prev.user,
-            gameData: response.data
-          }
-        }));
-      } catch (err) {
-        console.error("Failed to fetch game data:", err);
-      }
-    };
-
-    const interval = setInterval(() => {
-      fetchHistory();
-      pollPending();
-      pollGameData();
-    }, 2000);
-
-    fetchHistory();
-    pollPending();
-    pollGameData();
-
-    return () => clearInterval(interval);
-  }, [auth.token]);
+      }));
+    } catch (err) {
+      console.error("Failed to fetch game data:", err);
+    }
+  };
 
   const handleActivate = async () => {
     if (!selectedBotId) return;

@@ -20,7 +20,15 @@ builder.Services.AddCors(options =>
         });
 });
 
-builder.Services.AddDbContext<MyDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<MyDbContext>(options =>
+{
+    var provider = builder.Configuration["DatabaseProvider"];
+
+    if (string.Equals(provider, "Postgres", StringComparison.OrdinalIgnoreCase))
+        options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres"));
+    else
+        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+});
 builder.Services.AddScoped<AccessTokenGenerator>();
 builder.Services.AddScoped<IPasswordHasher, BCryptHasher>();
 builder.Services.AddSingleton<ActiveUsers>();
@@ -38,6 +46,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSignalR();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddAuthentication(options =>
@@ -59,11 +68,34 @@ builder.Services.AddAuthentication(options =>
             Encoding.UTF8.GetBytes(builder.Configuration["Authentification:AccessTokenSecretKey"]!)
         )
     };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+
+            if (!string.IsNullOrEmpty(accessToken) &&
+                path.StartsWithSegments("/gamehub"))
+            {
+                context.Token = accessToken;
+            }
+
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<MyDbContext>();
+    db.Database.Migrate();
+}
 
 if (app.Environment.IsDevelopment())
 {
@@ -77,4 +109,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<GameHub>("/gamehub");
+
 app.Run();

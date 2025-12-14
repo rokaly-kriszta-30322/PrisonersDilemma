@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
 
 [ApiController]
 [Route("[controller]")]
@@ -12,14 +13,17 @@ public class UserDataController : Controller
     private readonly AccessTokenGenerator _accessToken;
     private readonly ActiveUsers _activeUsers;
     private readonly GameOver _gameOver;
+    private readonly IHubContext<GameHub> _hub;
 
-    public UserDataController(GameOver gameOver, MyDbContext myDbContext, IPasswordHasher passwordHasher, AccessTokenGenerator accessToken, ActiveUsers activeUsers)
+
+    public UserDataController(IHubContext<GameHub> hub, GameOver gameOver, MyDbContext myDbContext, IPasswordHasher passwordHasher, AccessTokenGenerator accessToken, ActiveUsers activeUsers)
     {
         _myDbContext = myDbContext;
         _passwordHasher = passwordHasher;
         _accessToken = accessToken;
         _activeUsers = activeUsers;
         _gameOver = gameOver;
+        _hub = hub;
 
     }
 
@@ -49,7 +53,7 @@ public class UserDataController : Controller
     }
 
     [HttpPost("users/set-active")]
-    public IActionResult SetActiveStatus([FromBody] bool isActive)
+    public async Task<IActionResult> SetActiveStatus([FromBody] bool isActive)
     {
         var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (claim == null || !int.TryParse(claim, out var userId))
@@ -60,6 +64,7 @@ public class UserDataController : Controller
         else
             _activeUsers.RemoveUser(userId);
 
+        await _hub.Clients.All.SendAsync("ActiveUsersChanged");
         return Ok();
     }
 
@@ -87,6 +92,7 @@ public class UserDataController : Controller
         
         _activeUsers.RemoveUser(selectedBotId);
         await _gameOver.ResetToStart(selectedBotId);
+        await _hub.Clients.All.SendAsync("ActiveUsersChanged");
         return Ok("Bot deactivated");
     }
 
@@ -112,6 +118,8 @@ public class UserDataController : Controller
 
             if(bot.GameData!.MoneyPoints != 100 || bot.GameData.CoopCoop != 8) await _gameOver.ResetToStart(selectedBotId);
             _activeUsers.AddUser(selectedBotId, isBot: true);
+
+            await _hub.Clients.All.SendAsync("ActiveUsersChanged");
 
             return Ok(new { message = "Bot activated.", userId = selectedBotId });
         }
@@ -212,6 +220,8 @@ public class UserDataController : Controller
 
             await _gameOver.ResetToStart(userId);
 
+            await _hub.Clients.All.SendAsync("ActiveUsersChanged");
+
             return Ok(new { message = "Logged out successfully." });
         }
         catch (Exception ex)
@@ -255,6 +265,8 @@ public class UserDataController : Controller
             string accessToken = _accessToken.GenerateToken(user);
 
             _activeUsers.AddUser(user.UserId, isBot: false);
+
+            await _hub.Clients.All.SendAsync("ActiveUsersChanged");
 
             var userDto = new UserLoginDto
             {

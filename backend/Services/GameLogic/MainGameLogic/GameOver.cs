@@ -1,16 +1,19 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
 
 public class GameOver
 {
     private readonly MyDbContext _myDbContext;
     private readonly ActiveUsers _activeUsers;
     private readonly IBotStrategyManager _botStrategyManager;
+    private readonly IHubContext<GameHub> _hub;
 
-    public GameOver(IBotStrategyManager botStrategyManager, ActiveUsers activeUsers, MyDbContext myDbContext)
+    public GameOver(IHubContext<GameHub> hub, IBotStrategyManager botStrategyManager, ActiveUsers activeUsers, MyDbContext myDbContext)
     {
         _myDbContext = myDbContext;
         _activeUsers = activeUsers;
         _botStrategyManager = botStrategyManager;
+        _hub = hub;
     }
 
     public async Task ResetToStart(int userId)
@@ -58,6 +61,8 @@ public class GameOver
 
         var user = await _myDbContext.user_data.FirstOrDefaultAsync(u => u.UserId == userId);
         if (user == null) return;
+
+        await _hub.Clients.User(userId.ToString()).SendAsync("GameOver");
 
         if (user.Role == "bot")
         {

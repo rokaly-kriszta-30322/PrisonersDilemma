@@ -26,7 +26,7 @@ public class BotStrategyController : Controller
     {
         bool activeMode = _activeUsers.IsBotActiveMode(botId);
         bool chaosMode = _activeUsers.IsBotChaosMode(botId);
-        return Ok(new { ActiveMode = activeMode, ChaosMode = chaosMode });
+        return Ok(new { activeMode, chaosMode });
     }
 
     [HttpPost("AddBotStrategy")]

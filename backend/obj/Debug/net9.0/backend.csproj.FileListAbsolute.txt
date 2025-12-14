@@ -152,12 +152,6 @@ d:\K\Uni\Anul_IV\proj\backend\obj\Debug\net9.0\scopedcss\bundle\backend.styles.c
 d:\K\Uni\Anul_IV\proj\backend\obj\Debug\net9.0\staticwebassets.build.json
 d:\K\Uni\Anul_IV\proj\backend\obj\Debug\net9.0\staticwebassets.development.json
 d:\K\Uni\Anul_IV\proj\backend\obj\Debug\net9.0\staticwebassets.build.endpoints.json
-d:\K\Uni\Anul_IV\proj\backend\obj\Debug\net9.0\staticwebassets\msbuild.backend.Microsoft.AspNetCore.StaticWebAssets.props
-d:\K\Uni\Anul_IV\proj\backend\obj\Debug\net9.0\staticwebassets\msbuild.backend.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
-d:\K\Uni\Anul_IV\proj\backend\obj\Debug\net9.0\staticwebassets\msbuild.build.backend.props
-d:\K\Uni\Anul_IV\proj\backend\obj\Debug\net9.0\staticwebassets\msbuild.buildMultiTargeting.backend.props
-d:\K\Uni\Anul_IV\proj\backend\obj\Debug\net9.0\staticwebassets\msbuild.buildTransitive.backend.props
-d:\K\Uni\Anul_IV\proj\backend\obj\Debug\net9.0\staticwebassets.pack.json
 d:\K\Uni\Anul_IV\proj\backend\obj\Debug\net9.0\backend.csproj.Up2Date
 d:\K\Uni\Anul_IV\proj\backend\obj\Debug\net9.0\backend.dll
 d:\K\Uni\Anul_IV\proj\backend\obj\Debug\net9.0\refint\backend.dll
@@ -171,3 +165,11 @@ D:\K\Uni\Anul_IV\proj\backend\bin\Debug\net9.0\Microsoft.AspNetCore.Authenticati
 D:\K\Uni\Anul_IV\proj\backend\obj\Debug\net9.0\backend.sourcelink.json
 D:\K\Uni\Anul_IV\proj\backend\bin\Debug\net9.0\Newtonsoft.Json.dll
 D:\K\Uni\Anul_IV\proj\backend\bin\Debug\net9.0\System.Net.WebSockets.WebSocketProtocol.dll
+D:\K\Uni\Anul_IV\proj\backend\obj\Debug\net9.0\rpswa.dswa.cache.json
+D:\K\Uni\Anul_IV\proj\backend\obj\Debug\net9.0\rjimswa.dswa.cache.json
+D:\K\Uni\Anul_IV\proj\backend\obj\Debug\net9.0\rjsmrazor.dswa.cache.json
+D:\K\Uni\Anul_IV\proj\backend\obj\Debug\net9.0\rjsmcshtml.dswa.cache.json
+D:\K\Uni\Anul_IV\proj\backend\obj\Debug\net9.0\staticwebassets.build.json.cache
+D:\K\Uni\Anul_IV\proj\backend\obj\Debug\net9.0\swae.build.ex.cache
+D:\K\Uni\Anul_IV\proj\backend\bin\Debug\net9.0\Npgsql.dll
+D:\K\Uni\Anul_IV\proj\backend\bin\Debug\net9.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
