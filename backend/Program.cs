@@ -25,10 +25,44 @@ builder.Services.AddDbContext<MyDbContext>(options =>
     var provider = builder.Configuration["DatabaseProvider"];
 
     if (string.Equals(provider, "Postgres", StringComparison.OrdinalIgnoreCase))
-        options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres"));
+    {
+        var cs = builder.Configuration.GetConnectionString("Postgres");
+
+        if (string.IsNullOrWhiteSpace(cs))
+            throw new Exception("ConnectionStrings:Postgres is missing");
+
+        // Render gives a URL like: postgresql://user:pass@host/db
+        // Npgsql expects: Host=...;Port=...;Database=...;Username=...;Password=...
+        if (cs.StartsWith("postgres", StringComparison.OrdinalIgnoreCase))
+        {
+            var uri = new Uri(cs);
+            var userInfo = uri.UserInfo.Split(':', 2);
+
+            var host = uri.Host;
+            var port = uri.IsDefaultPort ? 5432 : uri.Port;
+            var database = uri.AbsolutePath.TrimStart('/');
+
+            var username = Uri.UnescapeDataString(userInfo[0]);
+            var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
+
+            cs =
+                $"Host={host};" +
+                $"Port={port};" +
+                $"Database={database};" +
+                $"Username={username};" +
+                $"Password={password};" +
+                $"SSL Mode=Require;" +
+                $"Trust Server Certificate=true";
+        }
+
+        options.UseNpgsql(cs);
+    }
     else
+    {
         options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    }
 });
+
 builder.Services.AddScoped<AccessTokenGenerator>();
 builder.Services.AddScoped<IPasswordHasher, BCryptHasher>();
 builder.Services.AddSingleton<ActiveUsers>();
