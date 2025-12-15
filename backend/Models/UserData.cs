@@ -12,8 +12,8 @@ public class UserData
 
     public string Role { get; set; } = "client";
 
-    public int MaxTurns { get; set; }
-    public int GameNr { get; set; }
+    public int? MaxTurns { get; set; }
+    public int? GameNr { get; set; }
 
     [ForeignKey("UserId")]
     public GameData? GameData { get; set; }
