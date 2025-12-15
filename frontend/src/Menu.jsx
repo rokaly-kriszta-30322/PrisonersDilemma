@@ -6,16 +6,35 @@ import axios from "./api/axios";
 const Menu = () => {
   const navigate = useNavigate();
   const { auth, setAuth } = useContext(AuthContext);
+  const [profile, setProfile] = useState(null);
 
   useEffect(() => {
-    if (!auth?.token) navigate("/login", { replace: true });
+    if (!auth?.token) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    const load = async () => {
+      try {
+        const id = auth?.user?.userId;
+        if (!id) return;
+
+        const res = await axios.get(`/UserData/GetUser/${id}`, {
+          headers: { Authorization: `Bearer ${auth.token}` },
+        });
+
+        setProfile(res.data);
+      } catch (e) {
+        console.warn("Failed to load user profile", e);
+      }
+    };
+
+    load();
   }, [auth, navigate]);
 
-  const user = auth?.user;
-
-  const userName = user?.userName ?? user?.username ?? "";
-  const gamesPlayed = user?.gameNr ?? user?.game_nr ?? user?.gameNumber ?? "";
-  const maxTurnsReached = user?.maxTurns ?? user?.max_turns ?? "";
+  const userName = auth?.user?.userName ?? "";
+  const gameNr = profile?.gameNr ?? profile?.GameNr ?? 0;
+  const maxTurns = profile?.maxTurns ?? profile?.MaxTurns ?? 0;
 
   const handleLogout = async () => {
     try {
@@ -43,12 +62,12 @@ const Menu = () => {
 
       <div style={{ marginTop: 16 }}>
         <div><strong>Name:</strong> {userName}</div>
-        <div><strong>Games played:</strong> {gamesPlayed}</div>
-        <div><strong>Max turns reached:</strong> {maxTurnsReached}</div>
+        <div><strong>Games played:</strong> {gameNr}</div>
+        <div><strong>Max turns reached:</strong> {maxTurns}</div>
       </div>
 
       <div style={{ marginTop: 24, display: "flex", gap: 12 }}>
-        <button onClick={() => navigate("/game")} className="coop">
+        <button onClick={() => navigate("/game")} className="signup">
           Join game
         </button>
 
