@@ -27,8 +27,7 @@ public class MyDbContext : DbContext
             entity.Property(u => u.UserName).HasColumnName("user_name");
             entity.Property(u => u.Password).HasColumnName("password");
             entity.Property(u => u.MaxTurns)
-                  .HasColumnName("nr_turns")
-                  .HasDefaultValue(10); // matches your old SQL default
+                  .HasColumnName("nr_turns");
             entity.Property(u => u.GameNr).HasColumnName("game_nr");
             entity.Property(u => u.Role).HasColumnName("role");
 

@@ -127,9 +127,16 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<MyDbContext>();
-    db.Database.Migrate();
+    var cfg = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+    var provider = cfg["DatabaseProvider"];
+
+    if (string.Equals(provider, "Postgres", StringComparison.OrdinalIgnoreCase))
+    {
+        var db = scope.ServiceProvider.GetRequiredService<MyDbContext>();
+        db.Database.Migrate();
+    }
 }
+
 
 if (app.Environment.IsDevelopment())
 {
