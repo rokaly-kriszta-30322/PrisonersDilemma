@@ -66,7 +66,7 @@ const Menu = () => {
         <div><strong>Max turns reached:</strong> {maxTurns}</div>
       </div>
 
-      <div style={{ marginTop: 24, display: "flex", gap: 12 }}>
+      <div className="signup" style={{ marginTop: 24, display: "flex", gap: 12 }}>
         <button onClick={() => navigate("/game")} className="coop">
           Join game
         </button>
