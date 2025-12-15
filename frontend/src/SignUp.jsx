@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 const USER_REGEX = /^[a-zA-Z][a-zA-Z0-9-_]{3,23}$/;
 const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,24}$/;
 
-const REGISTER_URL = 'http://localhost:5078/UserData/signup';
+const REGISTER_URL = '/UserData/signup';
 
 const SignUp = () => {
 

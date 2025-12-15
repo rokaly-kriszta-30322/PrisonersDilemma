@@ -3,7 +3,7 @@ import AuthContext from "./context/AuthProvider";
 import axios from "./api/axios";
 import { Link } from 'react-router-dom';
 
-const LOGIN_URL = 'http://localhost:5078/UserData/login';
+const LOGIN_URL = '/UserData/login';
 
 const LogIn = () => {
 
