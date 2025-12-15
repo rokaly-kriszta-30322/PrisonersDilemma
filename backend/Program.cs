@@ -128,9 +128,9 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var cfg = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-    var provider = cfg["DatabaseProvider"];
 
-    if (string.Equals(provider, "Postgres", StringComparison.OrdinalIgnoreCase))
+    // Only run migrations when explicitly enabled (Render)
+    if (string.Equals(cfg["RUN_MIGRATIONS"], "true", StringComparison.OrdinalIgnoreCase))
     {
         var db = scope.ServiceProvider.GetRequiredService<MyDbContext>();
         db.Database.Migrate();

@@ -26,8 +26,7 @@ public class MyDbContext : DbContext
             entity.Property(u => u.UserId).HasColumnName("user_id");
             entity.Property(u => u.UserName).HasColumnName("user_name");
             entity.Property(u => u.Password).HasColumnName("password");
-            entity.Property(u => u.MaxTurns)
-                  .HasColumnName("nr_turns");
+            entity.Property(u => u.MaxTurns).HasColumnName("nr_turns");
             entity.Property(u => u.GameNr).HasColumnName("game_nr");
             entity.Property(u => u.Role).HasColumnName("role");
 
