@@ -19,7 +19,7 @@ namespace backend.Migrations
                     user_name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     password = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     role = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    nr_turns = table.Column<int>(type: "int", nullable: false, defaultValue: 10),
+                    nr_turns = table.Column<int>(type: "int", nullable: false),
                     game_nr = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>

@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace backend.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    [Migration("20251214142103_InitialCreate")]
+    [Migration("20251215100710_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -228,9 +228,7 @@ namespace backend.Migrations
                         .HasColumnName("game_nr");
 
                     b.Property<int>("MaxTurns")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasDefaultValue(10)
                         .HasColumnName("nr_turns");
 
                     b.Property<string>("Password")
