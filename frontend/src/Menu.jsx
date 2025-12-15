@@ -57,7 +57,7 @@ const Menu = () => {
   };
 
   return (
-    <div className="menu-page" style={{ padding: 24 }}>
+    <div className="signup" style={{ padding: 24 }}>
       <h2>Menu</h2>
 
       <div style={{ marginTop: 16 }}>
@@ -67,7 +67,7 @@ const Menu = () => {
       </div>
 
       <div style={{ marginTop: 24, display: "flex", gap: 12 }}>
-        <button onClick={() => navigate("/game")} className="signup">
+        <button onClick={() => navigate("/game")} className="coop">
           Join game
         </button>
 
