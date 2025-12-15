@@ -72,7 +72,11 @@ const GamePage = () => {
       });
     };
 
-    const onGameStateUpdated = () => fetchGameData();
+    const onGameStateUpdated = () => {
+      fetchGameData();
+      fetchActivePlayers();
+    };
+
     const onHistoryUpdated = () => fetchHistory();
     const onActiveUsersChanged = () => fetchActivePlayers();
     const onGameOver = () => navigate("/gameover");
