@@ -5,6 +5,7 @@ import { Route, Routes, Navigate } from 'react-router-dom';
 import React, { createContext, useState, useEffect } from 'react';
 import GamePage from './GamePage';
 import GameOverPage from './GameOver';
+import Menu from './Menu';
 
 function App() {
   return (
